@@ -1,0 +1,10 @@
+/build
+/target
+/cmake-build-*
+
+
+/.idea
+/.vscode
+
+
+/ignore_*
