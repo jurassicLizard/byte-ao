@@ -23,16 +23,29 @@
  * 
  */
  
-#ifndef BYTEARRAYOPS_H
-#define BYTEARRAYOPS_H
+#ifndef BYTE_ARRAY_H
+#define BYTE_ARRAY_H
+
+#define JLBA_DEFAULT_ALLOC_SIZE 1024
+
+#include <vector>
+
+namespace jlizard
+{
+    class ByteArray
+    {
+    private:
+        std::vector<unsigned char> bytes_;
+    public:
+        ByteArray() {bytes_.reserve(JLBA_DEFAULT_ALLOC_SIZE);};
+        explicit ByteArray(const size_t size) {bytes_.resize(size);}
+        explicit ByteArray(const char* hex_str);
+        explicit ByteArray(const unsigned char* byte_array_raw,const int len);
+        ~ByteArray();
+    };
+
+}
 
 
 
-struct byte_array_ops {
-
-
-};
-
-
-
-#endif //BYTEARRAYOPS_H
+#endif //BYTE_ARRAY_H

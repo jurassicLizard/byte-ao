@@ -23,51 +23,35 @@
  * 
  */
  
- #include "jlizard/byte_array_ops.h"
-#include <cassert>
-#include <stdexcept>
+#ifndef BYTEARRAYOPS_H
+#define BYTEARRAYOPS_H
+#include <vector>
 
 
-using namespace jlizard;
+namespace  jlizard {
 
-void ByteArrayOps::Unsafe::complement(const unsigned char* in, unsigned char* out, const size_t length)
-{
-    //FIXME make this throw exception
-    if (!out) return;
-    if (!in) return;
-
-    for(size_t i=0;i<length;++i) {
-        out[i] = ~in[i];
-    }
-
-    //FIXME move this to tests section
-    for(size_t i=0;i<length;++i) {
-        assert(((out[i] & in[i]) == 0) && "working complmentation");
-    }
-}
-
-void ByteArrayOps::complement(const std::vector<unsigned char>& in, std::vector<unsigned char>& out)
-{
-    if (in.empty())
+    struct ByteArrayOps
     {
-        throw std::invalid_argument("Cannot process an empty byte array");
-    }
+        struct Unsafe
+        {
+            static void complement(const unsigned char* in,unsigned char* out,const size_t length);
 
-    out.resize(in.size());
+            Unsafe() = delete;
+        };
 
-    for (size_t i = 0; i < in.size(); ++i)
-    {
-        out[i] = ~in[i];
-    }
 
-}
+        static std::vector<unsigned char> complement(const std::vector<unsigned char>& in);
 
-std::vector<unsigned char> ByteArrayOps::complement(const std::vector<unsigned char>& in)
-{
-    std::vector<unsigned char> ret;
-    complement(in,ret);
-    return ret;
-}
+        static void complement(const std::vector<unsigned char>& in,
+                                std::vector<unsigned char>& out);
+
+        ByteArrayOps() = delete;
+    };
 
 
 
+};
+
+
+
+#endif //BYTEARRAYOPS_H
