@@ -26,22 +26,76 @@
 #ifndef BYTE_ARRAY_H
 #define BYTE_ARRAY_H
 
-#define JLBA_DEFAULT_ALLOC_SIZE 1024
+#define JLBA_DEFAULT_ALLOC_SIZE 32
 
 #include <vector>
+#include <string>
 
+//FIXME create overloads for xor and complement
+//FIXME iterator for transparently pushing bytes
+//FIXME create Unsafe block for raw pointer op
+//FIXME use SIMD
 namespace jlizard
 {
+
     class ByteArray
     {
     private:
         std::vector<unsigned char> bytes_;
     public:
+        // Destructor - likely trivial since std::vector handles cleanup
+        ~ByteArray() = default;
+        ByteArray(const ByteArray& other) = default;
+        ByteArray& operator=(const ByteArray& other) = default;
+        ByteArray(ByteArray&& other) noexcept : bytes_(std::move(other.bytes_)) {}
+        ByteArray& operator=(ByteArray&& other) noexcept;
+
         ByteArray() {bytes_.reserve(JLBA_DEFAULT_ALLOC_SIZE);};
         explicit ByteArray(const size_t size) {bytes_.resize(size);}
-        explicit ByteArray(const char* hex_str);
+        explicit ByteArray(const std::string& hex_str);
+        explicit ByteArray(const std::vector<unsigned char>& byte_array): bytes_(byte_array) {};
+        explicit ByteArray(std::vector<unsigned char>&& byte_array) noexcept : bytes_(std::move(byte_array)) {};        /**
+         * Creates a ByteArray containing a single byte.
+         * @param byte The single byte value to store
+         */
+        explicit ByteArray(unsigned char byte):bytes_(1,byte) {};
+        /**
+         * @brief Takes a string hex input and converts it to a byte array
+         * @param hex_str
+         * @param do_secure_wipe
+         */
+        explicit ByteArray(const char* hex_str) : ByteArray(std::string(hex_str)) {};
+        /**
+         * @brief raw pointer copy
+         * @deprecated must be cordoned off in an unsafe block
+         * @param byte_array_raw
+         * @param len
+         * @param do_secure_wipe
+         */
         explicit ByteArray(const unsigned char* byte_array_raw,const int len);
-        ~ByteArray();
+
+        bool secure_wipe();
+
+        // XOR-assignment operator
+        ByteArray& operator^=(const ByteArray& other);
+
+        // XOR with another ByteArray, returning a new ByteArray
+        ByteArray operator^(const ByteArray& other) const;
+
+        // XOR with a single byte, returning a new ByteArray
+        ByteArray operator^(unsigned char byte) const;
+
+        // XOR-assignment with a single byte
+        ByteArray& operator^=(unsigned char byte);
+
+
+        // Example accessor methods
+        [[nodiscard]] const unsigned char* data() const { return bytes_.data(); }
+        [[nodiscard]] size_t size() const { return bytes_.size(); }
+        [[nodiscard]] auto begin() const { return bytes_.begin(); }
+        [[nodiscard]] auto end() const { return bytes_.end(); }
+
+
     };
 
 }

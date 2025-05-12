@@ -5,7 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_library(${PROJECT_NAME} STATIC
         src/byte_array_ops.cpp
-        src/security_ops.cpp)
+        src/security_ops.cpp
+        src/byte_array.cpp)
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC
