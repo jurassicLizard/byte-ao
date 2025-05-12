@@ -35,6 +35,15 @@ namespace  jlizard {
         struct Unsafe
         {
             static void complement(const unsigned char* in,unsigned char* out,const size_t length);
+            // XOR operation for raw pointers (right-aligned logic)
+            static void xor_op(const unsigned char* first, size_t first_size,
+                       const unsigned char* second, size_t second_size,
+                       unsigned char* result, size_t result_size);
+
+            // XOR single byte with array (useful for constant-time operations)
+            static void xor_op(const unsigned char* input, size_t input_size,
+                       unsigned char byte,
+                       unsigned char* result, size_t result_size);
 
             Unsafe() = delete;
         };
@@ -44,6 +53,23 @@ namespace  jlizard {
 
         static void complement(const std::vector<unsigned char>& in,
                                 std::vector<unsigned char>& out);
+
+        // XOR two vectors with right alignment
+        static void xor_op(const std::vector<unsigned char>& first_operand,
+                          const std::vector<unsigned char>& second_operand,
+                          std::vector<unsigned char>& result_out);
+
+        // XOR a vector with a single byte
+        static void xor_op(const std::vector<unsigned char>& input,
+                          unsigned char byte,
+                          std::vector<unsigned char>& result_out);
+        // XOR a vector with a single byte by-copy
+        static std::vector<unsigned char> xor_op(const std::vector<unsigned char>& input,
+                          unsigned char byte);
+
+        // Return new vector as result of XOR operation
+        static std::vector<unsigned char> xor_op(const std::vector<unsigned char>& first_operand,
+                                               const std::vector<unsigned char>& second_operand);
 
         ByteArrayOps() = delete;
     };
