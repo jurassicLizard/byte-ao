@@ -125,14 +125,16 @@ void ByteArrayOps::Unsafe::xor_op(const unsigned char* first, size_t first_size,
     // Zero out the result buffer
     std::memset(result, 0, result_size);
 
-    // Apply right-alignment logic and XOR directly
+    // Apply right-alignment logic and XOR
     size_t first_offset = required_size - first_size;
     size_t second_offset = required_size - second_size;
 
-    // Copy and XOR first operand
-    std::memcpy(result + first_offset, first, first_size);
+    // First copy the first operand (without XOR since buffer is zeroed)
+    for (size_t i = 0; i < first_size; i++) {
+        result[first_offset + i] = first[i];
+    }
 
-    // XOR second operand in-place
+    // Then XOR the second operand in-place
     for (size_t i = 0; i < second_size; i++) {
         result[second_offset + i] ^= second[i];
     }
@@ -147,15 +149,19 @@ void ByteArrayOps::Unsafe::xor_op(const unsigned char* input, size_t input_size,
         return;
     }
 
-    // XOR each byte with the constant byte
+    // Zero out the result buffer
+    std::memset(result, 0, result_size);
+
+    // Apply right-alignment logic
+    size_t input_offset = result_size - input_size;
+
+    // Copy input data to result (starting at the proper offset)
     for (size_t i = 0; i < input_size; i++) {
-        result[i] = input[i] ^ byte;
+        result[input_offset + i] = input[i];
     }
 
-    // Zero out any remaining bytes in result
-    for (size_t i = input_size; i < result_size; i++) {
-        result[i] = 0;
-    }
+    // XOR the last byte with the provided byte value
+    result[result_size - 1] ^= byte;
 }
 
 std::vector<unsigned char> ByteArrayOps::xor_op(const std::vector<unsigned char>& input, unsigned char byte)

@@ -35,6 +35,8 @@
 //FIXME iterator for transparently pushing bytes
 //FIXME create Unsafe block for raw pointer op
 //FIXME use SIMD
+//FIXME add uint64_t constructor
+//FIXME add boolean flag for automatic secure wipe operation
 namespace jlizard
 {
 
@@ -73,6 +75,12 @@ namespace jlizard
          * @param do_secure_wipe
          */
         explicit ByteArray(const unsigned char* byte_array_raw,const int len);
+
+        /**
+         * @brief Construct a ByteArray from an initializer list of bytes
+         * @param bytes The initializer list of unsigned char values
+         */
+        ByteArray(std::initializer_list<unsigned char> bytes) : bytes_(bytes) {};
 
         bool secure_wipe();
 

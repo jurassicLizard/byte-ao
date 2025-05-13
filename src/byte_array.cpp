@@ -46,8 +46,8 @@ ByteArray::ByteArray(const std::string& hex_str)
             hex_byte[0] = hex_str[i];
             hex_byte[1] = hex_str[i+1];
         } else {
-            hex_byte[0] = hex_str[i];
-            hex_byte[1] = '0'; // Pad with 0
+            hex_byte[0] = '0'; // Pad with 0
+            hex_byte[1] = hex_str[i];
         }
 
         char* end_ptr;
@@ -107,13 +107,16 @@ ByteArray ByteArray::operator^(unsigned char byte) const
 
 ByteArray& ByteArray::operator^=(const ByteArray& other)
 {
-    ByteArrayOps::xor_op(this->bytes_, other.bytes_, this->bytes_);
+    const std::vector<unsigned char> temp_bytes = this->bytes_;
+    ByteArrayOps::xor_op(temp_bytes, other.bytes_, this->bytes_);
+
     return *this;
 }
 
 ByteArray& ByteArray::operator^=(unsigned char byte)
 {
-    ByteArrayOps::xor_op(bytes_, byte, bytes_);
+    const std::vector<unsigned char> temp_bytes = this->bytes_;
+    ByteArrayOps::xor_op(temp_bytes, byte, bytes_);
     return *this;
 }
 
