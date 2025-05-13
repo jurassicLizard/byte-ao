@@ -85,6 +85,12 @@ bool ByteArray::secure_wipe()
     return security::unsafe::SecureErase::secure_zero_vector(bytes_,options);
 }
 
+ByteArray::ByteArray(const uint64_t byte_array_long)
+{
+    ByteArrayOps::uint64_to_bytearray(byte_array_long,bytes_);
+}
+
+
 
 ByteArray& ByteArray::operator=(ByteArray&& other) noexcept
 {
@@ -120,6 +126,16 @@ ByteArray& ByteArray::operator^=(unsigned char byte)
     return *this;
 }
 
+
+uint64_t ByteArray::as_64bit_uint() const
+{
+    if (bytes_.size() > 8)
+    {
+        throw std::invalid_argument("Byte array is larger than 64-bit and cannot be represented as such");
+    }
+
+    return ByteArrayOps::bytearray_to_uint64(bytes_);
+}
 
 
 

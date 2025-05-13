@@ -25,6 +25,7 @@
  
 #ifndef BYTEARRAYOPS_H
 #define BYTEARRAYOPS_H
+#include <cstdint>
 #include <vector>
 
 
@@ -70,6 +71,11 @@ namespace  jlizard {
         // Return new vector as result of XOR operation
         static std::vector<unsigned char> xor_op(const std::vector<unsigned char>& first_operand,
                                                const std::vector<unsigned char>& second_operand);
+
+        // convert uint64 to byte array
+        static void uint64_to_bytearray(const uint64_t in,std::vector<unsigned char>& out);
+        //convert byte array to uint64 or return largest uint64 integer if byte array is to large
+        static uint64_t bytearray_to_uint64(const std::vector<unsigned char>& in);
 
         ByteArrayOps() = delete;
     };

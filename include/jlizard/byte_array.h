@@ -28,6 +28,7 @@
 
 #define JLBA_DEFAULT_ALLOC_SIZE 32
 
+#include <cstdint>
 #include <vector>
 #include <string>
 
@@ -44,6 +45,7 @@ namespace jlizard
     {
     private:
         std::vector<unsigned char> bytes_;
+
     public:
         // Destructor - likely trivial since std::vector handles cleanup
         ~ByteArray() = default;
@@ -53,10 +55,11 @@ namespace jlizard
         ByteArray& operator=(ByteArray&& other) noexcept;
 
         ByteArray() {bytes_.reserve(JLBA_DEFAULT_ALLOC_SIZE);};
-        explicit ByteArray(const size_t size) {bytes_.resize(size);}
         explicit ByteArray(const std::string& hex_str);
         explicit ByteArray(const std::vector<unsigned char>& byte_array): bytes_(byte_array) {};
-        explicit ByteArray(std::vector<unsigned char>&& byte_array) noexcept : bytes_(std::move(byte_array)) {};        /**
+        explicit ByteArray(std::vector<unsigned char>&& byte_array) noexcept : bytes_(std::move(byte_array)) {};
+        explicit ByteArray(const uint64_t byte_array_long);
+        /**
          * Creates a ByteArray containing a single byte.
          * @param byte The single byte value to store
          */
@@ -97,12 +100,15 @@ namespace jlizard
         ByteArray& operator^=(unsigned char byte);
 
 
-        // Example accessor methods
+        // accessor methods
         [[nodiscard]] const unsigned char* data() const { return bytes_.data(); }
         [[nodiscard]] size_t size() const { return bytes_.size(); }
         [[nodiscard]] auto begin() const { return bytes_.begin(); }
         [[nodiscard]] auto end() const { return bytes_.end(); }
 
+        // utility methods
+        //get as 64bit unsigned long , if byte array is too large we throw an invalid argument exception
+        [[nodiscard]] uint64_t as_64bit_uint() const;
 
     };
 

@@ -172,6 +172,43 @@ std::vector<unsigned char> ByteArrayOps::xor_op(const std::vector<unsigned char>
 }
 
 
+void ByteArrayOps::uint64_to_bytearray(const uint64_t in, std::vector<unsigned char>& out)
+{
+    // Convert to big-endian byte order (most significant byte first)
+    uint64_t value = in;
+    // Count how many bytes we need
+    int bytes_needed = 0;
+    uint64_t temp = value;
+    do {
+        bytes_needed++;
+        temp >>= 8;
+    } while (temp != 0);
+
+    // Resize the output vector
+    out.resize(bytes_needed);
+
+    // Fill the vector with bytes in big-endian order
+    for (int i = bytes_needed - 1; i >= 0; i--) {
+        out[bytes_needed - 1 - i] = static_cast<unsigned char>((value >> (i * 8)) & 0xFF);
+    }
+}
+
+uint64_t ByteArrayOps::bytearray_to_uint64(const std::vector<unsigned char>& in)
+{
+    if (in.size() > 8) {
+        throw std::invalid_argument("Byte array is larger than 64-bit and cannot be represented as such");
+    }
+
+    uint64_t result = 0;
+
+    // Convert from big-endian byte order
+    for (size_t i = 0; i < in.size(); i++) {
+        result = (result << 8) | in[i];
+    }
+
+    return result;
+}
+
 
 
 

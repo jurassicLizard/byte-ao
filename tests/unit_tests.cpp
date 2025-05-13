@@ -160,7 +160,7 @@ void test_xor_operators() {
 void test_copy_move_semantics() {
     // Test copy constructor
     const ByteArray original({0x01, 0x02, 0x03});
-    const ByteArray copy = original;
+    const ByteArray copy = original; // NOLINT
 
     assert(copy.size() == original.size());
     assert(copy.data()[0] == 0x01);
@@ -202,7 +202,7 @@ void test_iterators() {
 
     // Test begin/end iterators
     unsigned char sum = 0;
-    for (auto it = ba.begin(); it != ba.end(); ++it) {
+    for (auto it = ba.begin(); it != ba.end(); ++it) { // NOLINT
         sum += *it;
     }
     assert(sum == 0x0A);  // 0x01 + 0x02 + 0x03 + 0x04 = 0x0A
@@ -275,13 +275,103 @@ void test_secure_erase() {
     // After wiping, the object should still be usable
     // We can't directly assign new data since there's no method for that,
     // but we can test that the object is in a valid state by assigning from another ByteArray
-    ByteArray new_data({0x44, 0x55, 0x66});
+    const ByteArray new_data({0x44, 0x55, 0x66});
     reusable = new_data;
 
     assert(reusable.size() == 3);
     assert(reusable.data()[0] == 0x44);
     assert(reusable.data()[1] == 0x55);
     assert(reusable.data()[2] == 0x66);
+}
+
+// Test uint64_t constructor and as_64bit_uint conversion
+void test_uint64_constructor_and_conversion() {
+    // Test constructor with small value
+    constexpr uint64_t small_value = 42;
+    const ByteArray ba1(small_value);
+
+    // Check correct construction (should use big-endian byte order)
+    assert(ba1.size() == 1);
+    assert(ba1.data()[0] == 42);
+
+    // Test round-trip conversion
+    assert(ba1.as_64bit_uint() == small_value);
+
+    // Test constructor with multi-byte value
+    constexpr uint64_t multi_byte = 0x1122334455667788;
+    const ByteArray ba2(multi_byte);
+
+    // Check correct byte count and values (big-endian byte order)
+    assert(ba2.size() == 8);
+    assert(ba2.data()[0] == 0x11);
+    assert(ba2.data()[1] == 0x22);
+    assert(ba2.data()[2] == 0x33);
+    assert(ba2.data()[3] == 0x44);
+    assert(ba2.data()[4] == 0x55);
+    assert(ba2.data()[5] == 0x66);
+    assert(ba2.data()[6] == 0x77);
+    assert(ba2.data()[7] == 0x88);
+
+    // Test round-trip conversion
+    assert(ba2.as_64bit_uint() == multi_byte);
+
+    // Test with value that doesn't need all 8 bytes
+    constexpr uint64_t medium_value = 0x112233;
+    const ByteArray ba3(medium_value);
+
+    // Should only use 3 bytes
+    assert(ba3.size() == 3);
+    assert(ba3.data()[0] == 0x11);
+    assert(ba3.data()[1] == 0x22);
+    assert(ba3.data()[2] == 0x33);
+
+    // Test round-trip conversion
+    assert(ba3.as_64bit_uint() == medium_value);
+
+    // Test with 0
+    constexpr uint64_t zero_value = 0;
+    const ByteArray ba4(zero_value);
+
+    // Should produce a 1-byte array with value 0
+    assert(ba4.size() == 1);
+    assert(ba4.data()[0] == 0);
+    assert(ba4.as_64bit_uint() == zero_value);
+}
+
+// Test as_64bit_uint exception handling
+void test_as_64bit_uint_exceptions() {
+    // Create a ByteArray with more than 8 bytes
+    ByteArray large_array({0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09});
+    assert(large_array.size() == 9);  // More than 8 bytes
+
+    // Attempting to convert should throw an exception
+    bool exception_thrown = false;
+    try {
+        uint64_t value = large_array.as_64bit_uint();
+        (void)value;  // Avoid unused variable warning
+    } catch (const std::invalid_argument& e) {
+        exception_thrown = true;
+        assert(std::string(e.what()) == "Byte array is larger than 64-bit and cannot be represented as such");
+    }
+    assert(exception_thrown);
+
+    // Test boundary case with exactly 8 bytes
+    const ByteArray boundary_array({0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08});
+    assert(boundary_array.size() == 8);
+
+    // This should not throw
+    bool boundary_exception = false;
+    try {
+        uint64_t value = boundary_array.as_64bit_uint();
+        (void)value;  // Avoid unused variable warning
+    } catch (...) {
+        boundary_exception = true;
+    }
+    assert(!boundary_exception);
+
+    // Test conversion result with 8 bytes
+    uint64_t expected = 0x0102030405060708;
+    assert(boundary_array.as_64bit_uint() == expected);
 }
 
 // Main test function
@@ -294,6 +384,8 @@ int main() {
     test_copy_move_semantics();
     test_iterators();
     test_secure_erase();
+    test_uint64_constructor_and_conversion();
+    test_as_64bit_uint_exceptions();
 
     std::cout << "All tests passed successfully!" << std::endl;
     return 0;
