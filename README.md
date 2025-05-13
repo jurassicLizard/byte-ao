@@ -1,6 +1,6 @@
 # Byte-Array Operations Library
 
-![GitHub License](https://img.shields.io/github/license/jurassicLizard/byte-ao)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
 ![GitHub Issues](https://img.shields.io/github/issues/jurassicLizard/byte-ao)
 
 A high-level C++ abstraction for byte array operations designed while exploring cryptographic engineering concepts from Bruce Schneier, Ferguson and Kohno's "Cryptography Engineering" book.
