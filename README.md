@@ -1,10 +1,26 @@
-# ByteArrayOps
+# Byte-Array Operations Library
 
 ![GitHub License](https://img.shields.io/github/license/jurassicLizard/byte-ao)
 ![GitHub Issues](https://img.shields.io/github/issues/jurassicLizard/byte-ao)
 
-
 A high-level C++ abstraction for byte array operations designed while exploring cryptographic engineering concepts from Bruce Schneier, Ferguson and Kohno's "Cryptography Engineering" book.
+
+<!-- TOC -->
+* [Byte-Array Operations Library](#byte-array-operations-library)
+  * [Overview](#overview)
+  * [Features](#features)
+  * [Example Usage](#example-usage)
+    * [General Byte array operations](#general-byte-array-operations)
+    * [Example use with OpenSSL (Optional)](#example-use-with-openssl-optional)
+  * [Building and Usage](#building-and-usage)
+  * [Testing](#testing)
+  * [Requirements](#requirements)
+  * [Security Considerations](#security-considerations)
+  * [License](#license)
+  * [Contribution](#contribution)
+  * [WIPs and TODOs](#wips-and-todos)
+<!-- TOC -->
+
 
 ## Overview
 
@@ -98,10 +114,10 @@ Tests validate core functionality including byte array construction, bitwise ope
 
 ## Security Considerations
 This library includes functionality to securely erase sensitive data from memory, but offers no guarantees against sophisticated memory forensic techniques or side-channel attacks. Always follow security best practices when handling cryptographic material.
+
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-## Contribution
-Contributions are welcome! Please feel free to submit a Pull Request.
+
 ## WIPs and TODOs
 - Add SIMD acceleration for performance-critical operations
 - Add parallelization (Multi-Threading)
