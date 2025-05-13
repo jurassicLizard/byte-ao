@@ -122,6 +122,14 @@ This library includes functionality to securely erase sensitive data from memory
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## WIPs and TODOs
+- Add additional bitwise operations (AND, OR, NAND, one's complement, two's complement)
+- Add bit manipulation operations (bit shifting, rotation, bit extraction, bit counting)
+- Add comparison operations (equality, less than, greater than)
+- Add endianness conversion utilities (big-endian to little-endian and vice versa)
+- Add array manipulation functions (concatenation, splitting, slicing)
+- Add search and pattern matching capabilities
+- Add serialization/deserialization support
+- Add encoding/decoding utilities (Base64, hex)
 - Add SIMD acceleration for performance-critical operations
 - Add parallelization (Multi-Threading)
 - Add comprehensive benchmarking
