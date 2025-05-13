@@ -23,7 +23,7 @@ A high-level C++ abstraction for byte array operations designed while exploring 
 
 ## Overview
 
-ByteArrayOps provides a clean, safe interface for working with byte arrays in cryptographic applications. This library offers:
+The Byte-Array Operations Library provides a clean, safe interface for working with byte arrays in cryptographic applications. This library offers:
 
 - Safe byte array construction from various sources (hex strings, vectors, initializer lists)
 - Secure memory wiping for sensitive data
@@ -50,20 +50,36 @@ ByteArrayOps provides a clean, safe interface for working with byte arrays in cr
 #include "jlizard/byte_array_ops.h"
 using namespace jlizard;
 
-// Create a ByteArray from a hex string
-ByteArray key("deadbeef");
 
-// Create from an initializer list
-ByteArray iv({0x01, 0x02, 0x03, 0x04});
+void example() {
+  
+    // Create a ByteArray from a hex string
+    ByteArray key("deadbeef");
+    
+    // Create from an initializer list
+    ByteArray iv({0x01, 0x02, 0x03, 0x04});
+    
+    // XOR operation
+    ByteArray result = key ^ iv;
+    
+    // Convert to uint64_t
+    uint64_t value = result.as_64bit_uint();
+    
+    // Accessing raw data and size 
+    const unsigned char* raw_data = result.data(); 
+    size_t data_length = result.size();
+    
+    // Iterate through the bytes 
+    for (auto byte : result) 
+    { 
+      // Process each byte
+    }
+    // When done with sensitive data, wipe it securely
+     key.secure_wipe();
 
-// XOR operation
-ByteArray result = key ^ iv;
+}
 
-// Convert to uint64_t
-uint64_t value = result.as_64bit_uint();
 
-// When done with sensitive data, wipe it securely
-key.secure_wipe();
 ```
 ### Example use with OpenSSL (Optional)
 
@@ -112,6 +128,20 @@ Tests validate core functionality including byte array construction, bitwise ope
 ## Requirements
 - C++20 compatible compiler
 - CMake 3.31 or higher
+
+## Important Implementation Notes
+
+### Endianness Considerations
+
+In cryptographic applications, endianness matters when converting between byte arrays and multi-byte values (like `uint32_t` or `uint64_t`). Many cryptographic algorithms specify operations in big-endian format (network byte order), while most modern CPUs use little-endian format internally.
+
+This library provides consistent endianness handling:
+
+- When converting from a hex string to a byte array, the bytes are stored in the order they appear in the string
+- The `as_64bit_uint()` method interprets bytes in big-endian order, which is the conventional format in cryptographic contexts
+- For interoperability with different systems, explicit endianness conversion functions are planned in future updates
+
+When interfacing with platform-specific APIs or libraries that assume different endianness, be careful to apply appropriate conversions.
 
 ## Security Considerations
 This library includes functionality to securely erase sensitive data from memory, but offers no guarantees against sophisticated memory forensic techniques or side-channel attacks. Always follow security best practices when handling cryptographic material.
