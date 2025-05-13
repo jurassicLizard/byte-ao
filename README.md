@@ -17,7 +17,6 @@ A high-level C++ abstraction for byte array operations designed while exploring 
   * [Requirements](#requirements)
   * [Security Considerations](#security-considerations)
   * [License](#license)
-  * [Contribution](#contribution)
   * [WIPs and TODOs](#wips-and-todos)
 <!-- TOC -->
 
@@ -105,7 +104,9 @@ make
 ctest --output-on-failure
 ``` 
 
-Tests validate core functionality including byte array construction, bitwise operations, secure memory handling, and conversion utilities.
+Tests validate core functionality including byte array construction, bitwise operations, memory handling, and conversion utilities.
+
+**Note on Secure Wipe Testing:** The secure memory wiping procedures, while implemented, are not yet thoroughly tested with unit tests. This functionality should be considered a work in progress from a verification standpoint.
 
 
 ## Requirements
@@ -115,6 +116,8 @@ Tests validate core functionality including byte array construction, bitwise ope
 ## Security Considerations
 This library includes functionality to securely erase sensitive data from memory, but offers no guarantees against sophisticated memory forensic techniques or side-channel attacks. Always follow security best practices when handling cryptographic material.
 
+**Note on Secure Wipe Testing:** The secure memory wiping procedures, while implemented, are not yet thoroughly tested with unit tests. This functionality should be considered a work in progress from a verification standpoint.
+
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
@@ -123,3 +126,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 - Add parallelization (Multi-Threading)
 - Add comprehensive benchmarking
 - Expand platform-specific secure memory handling
+- Add testing for secure wipe procedures
