@@ -93,7 +93,9 @@ ByteArrayOps can be used alongside other cryptographic libraries like OpenSSL:
 
 ## Building and Usage
 
-This library is designed to be included in other CMake projects using `add_subdirectory()`:
+This library is designed to be included in other CMake projects. You can integrate it using one of these methods:
+
+### Option 1: Using add_subdirectory()
 
 ```cmake
 # In your project's CMakeLists.txt
@@ -102,7 +104,31 @@ add_subdirectory(path/to/byte_array_ops)
 target_link_libraries(your_target PRIVATE jlizard::byte-ao)
 ``` 
 
-For standalone building (for testing or development):
+### Option 2: Using FetchContent
+
+```cmake
+include(FetchContent)
+
+# Declare the byte-ao project - note that the name must be a valid variable name
+# so we use byte_ao as the content name but it will fetch from byte-ao repository
+FetchContent_Declare(
+        byte_ao
+        GIT_REPOSITORY https://github.com/jurassicLizard/byte-ao.git
+        GIT_TAG master 
+)
+
+# Make it available
+FetchContent_MakeAvailable(byte_ao)
+
+# Your existing project configuration
+# ...
+
+# When linking, use the full namespaced target
+target_link_libraries(your_target PRIVATE jlizard::byte-ao)
+
+``` 
+
+### Standalone building (for testing or development):
 ```bash
 mkdir build && cd build 
 cmake .. 
