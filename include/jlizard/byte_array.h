@@ -101,10 +101,10 @@ namespace jlizard
 
 
         // accessor methods
-        [[nodiscard]] const unsigned char* data() const { return bytes_.data(); }
-        [[nodiscard]] size_t size() const { return bytes_.size(); }
-        [[nodiscard]] auto begin() const { return bytes_.begin(); }
-        [[nodiscard]] auto end() const { return bytes_.end(); }
+        [[nodiscard]] unsigned char* data() noexcept { return bytes_.data(); }
+        [[nodiscard]] size_t size() const noexcept { return bytes_.size(); }
+        [[nodiscard]] auto begin() const noexcept { return bytes_.begin(); }
+        [[nodiscard]] auto end() const noexcept { return bytes_.end(); }
 
         // utility methods
         //get as 64bit unsigned long , if byte array is too large we throw an invalid argument exception

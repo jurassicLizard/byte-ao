@@ -33,7 +33,7 @@ using namespace jlizard;
 
 // Test hex string constructor
 void test_hex_string_constructor() {
-    const ByteArray b1("fe81eabd5");
+    ByteArray b1("fe81eabd5");
     assert(b1.size() == 5);
     assert(b1.data()[0] == 0xfe);
     assert(b1.data()[1] == 0x81);
@@ -41,7 +41,7 @@ void test_hex_string_constructor() {
     assert(b1.data()[3] == 0xbd);
     assert(b1.data()[4] == 0x05);
 
-    const ByteArray b2("abcdef0123");
+    ByteArray b2("abcdef0123");
     assert(b2.size() == 5);
     assert(b2.data()[0] == 0xab);
     assert(b2.data()[1] == 0xcd);
@@ -91,15 +91,15 @@ void test_initializer_list_constructor() {
 
 // Test single byte constructor
 void test_single_byte_constructor() {
-    const ByteArray b1(static_cast<unsigned char>(0xAA));
+    ByteArray b1(static_cast<unsigned char>(0xAA));
     assert(b1.size() == 1);
     assert(b1.data()[0] == 0xAA);
 
-    const ByteArray b2(static_cast<unsigned char>(0x00));
+    ByteArray b2(static_cast<unsigned char>(0x00));
     assert(b2.size() == 1);
     assert(b2.data()[0] == 0x00);
 
-    const ByteArray b3(static_cast<unsigned char>(0xFF));
+    ByteArray b3(static_cast<unsigned char>(0xFF));
     assert(b3.size() == 1);
     assert(b3.data()[0] == 0xFF);
 }
@@ -109,7 +109,7 @@ void test_xor_operators() {
     // Test XOR with another ByteArray
     const ByteArray b1({0xAA, 0xBB, 0xCC});
     const ByteArray b2({0x55, 0x44, 0x33});
-    const ByteArray b3 = b1 ^ b2;
+    ByteArray b3 = b1 ^ b2;
 
     assert(b3.size() == 3);
     assert(b3.data()[0] == (0xAA ^ 0x55));
@@ -119,7 +119,7 @@ void test_xor_operators() {
     // Test XOR with unequal lengths (right-aligned)
     const ByteArray b4({0xAA, 0xBB});
     const ByteArray b5({0x11, 0x22, 0x33});
-    const ByteArray b6 = b4 ^ b5;
+    ByteArray b6 = b4 ^ b5;
 
     assert(b6.size() == 3);
     // With right alignment, b4 is aligned at the end of b6
@@ -129,7 +129,7 @@ void test_xor_operators() {
 
     // Test XOR with single byte (right-aligned)
     const ByteArray b7({0x12, 0x34, 0x56});
-    const ByteArray b8 = b7 ^ 0xFF;
+    ByteArray b8 = b7 ^ 0xFF;
 
     assert(b8.size() == 3);
     assert(b8.data()[0] == 0x12);  // Unchanged
@@ -160,7 +160,7 @@ void test_xor_operators() {
 void test_copy_move_semantics() {
     // Test copy constructor
     const ByteArray original({0x01, 0x02, 0x03});
-    const ByteArray copy = original; // NOLINT
+    ByteArray copy = original; // NOLINT
 
     assert(copy.size() == original.size());
     assert(copy.data()[0] == 0x01);
@@ -288,7 +288,7 @@ void test_secure_erase() {
 void test_uint64_constructor_and_conversion() {
     // Test constructor with small value
     constexpr uint64_t small_value = 42;
-    const ByteArray ba1(small_value);
+    ByteArray ba1(small_value);
 
     // Check correct construction (should use big-endian byte order)
     assert(ba1.size() == 1);
@@ -299,7 +299,7 @@ void test_uint64_constructor_and_conversion() {
 
     // Test constructor with multi-byte value
     constexpr uint64_t multi_byte = 0x1122334455667788;
-    const ByteArray ba2(multi_byte);
+    ByteArray ba2(multi_byte);
 
     // Check correct byte count and values (big-endian byte order)
     assert(ba2.size() == 8);
@@ -317,7 +317,7 @@ void test_uint64_constructor_and_conversion() {
 
     // Test with value that doesn't need all 8 bytes
     constexpr uint64_t medium_value = 0x112233;
-    const ByteArray ba3(medium_value);
+    ByteArray ba3(medium_value);
 
     // Should only use 3 bytes
     assert(ba3.size() == 3);
@@ -330,7 +330,7 @@ void test_uint64_constructor_and_conversion() {
 
     // Test with 0
     constexpr uint64_t zero_value = 0;
-    const ByteArray ba4(zero_value);
+    ByteArray ba4(zero_value);
 
     // Should produce a 1-byte array with value 0
     assert(ba4.size() == 1);
