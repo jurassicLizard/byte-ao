@@ -114,7 +114,10 @@ include(FetchContent)
 FetchContent_Declare(
         byte_ao
         GIT_REPOSITORY https://github.com/jurassicLizard/byte-ao.git
-        GIT_TAG master 
+        GIT_TAG master
+        # uncomment the following to always force a synchronization with upstream without having to remove the build directory
+        # UPDATE_COMMAND ${GIT_EXECUTABLE} pull
+
 )
 
 # Make it available
