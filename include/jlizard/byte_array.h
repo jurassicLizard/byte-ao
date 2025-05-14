@@ -40,7 +40,7 @@
 //FIXME add boolean flag for automatic secure wipe operation
 namespace jlizard
 {
-
+//FIXME consider aliasing unsigned char to Byte via using Byte = unsigned char;
     class ByteArray
     {
     private:
@@ -59,6 +59,7 @@ namespace jlizard
         explicit ByteArray(const std::vector<unsigned char>& byte_array): bytes_(byte_array) {};
         explicit ByteArray(std::vector<unsigned char>&& byte_array) noexcept : bytes_(std::move(byte_array)) {};
         explicit ByteArray(const uint64_t byte_array_long);
+        explicit ByteArray(const size_t num_bytes, const unsigned char val) noexcept : bytes_(num_bytes,val) {};
         /**
          * Creates a ByteArray containing a single byte.
          * @param byte The single byte value to store
@@ -70,15 +71,6 @@ namespace jlizard
          * @param do_secure_wipe
          */
         explicit ByteArray(const char* hex_str) : ByteArray(std::string(hex_str)) {};
-        /**
-         * @brief raw pointer copy
-         * @deprecated must be cordoned off in an unsafe block
-         * @param byte_array_raw
-         * @param len
-         * @param do_secure_wipe
-         */
-        explicit ByteArray(const unsigned char* byte_array_raw,const int len);
-
         /**
          * @brief Construct a ByteArray from an initializer list of bytes
          * @param bytes The initializer list of unsigned char values

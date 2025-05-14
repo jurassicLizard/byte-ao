@@ -374,6 +374,38 @@ void test_as_64bit_uint_exceptions() {
     assert(boundary_array.as_64bit_uint() == expected);
 }
 
+// Test size and value constructor
+void test_size_and_value_constructor() {
+    // Test with non-zero value
+    ByteArray b1(5, 0xAA);
+    assert(b1.size() == 5);
+    assert(b1.data()[0] == 0xAA);
+    assert(b1.data()[1] == 0xAA);
+    assert(b1.data()[2] == 0xAA);
+    assert(b1.data()[3] == 0xAA);
+    assert(b1.data()[4] == 0xAA);
+
+    // Test with zero value
+    ByteArray b2(3, 0x00);
+    assert(b2.size() == 3);
+    assert(b2.data()[0] == 0x00);
+    assert(b2.data()[1] == 0x00);
+    assert(b2.data()[2] == 0x00);
+
+    // Test with zero size
+    ByteArray b3(0, 0xFF);
+    assert(b3.size() == 0);
+
+    // Test with large size
+    constexpr size_t large_size = 1000;
+    ByteArray b4(large_size, 0xFF);
+    assert(b4.size() == large_size);
+    // Check some sample elements
+    assert(b4.data()[0] == 0xFF);
+    assert(b4.data()[large_size / 2] == 0xFF);
+    assert(b4.data()[large_size - 1] == 0xFF);
+}
+
 // Main test function
 int main() {
     test_hex_string_constructor();
@@ -386,6 +418,7 @@ int main() {
     test_secure_erase();
     test_uint64_constructor_and_conversion();
     test_as_64bit_uint_exceptions();
+    test_size_and_value_constructor();
 
     std::cout << "All tests passed successfully!" << std::endl;
     return 0;

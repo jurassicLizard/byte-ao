@@ -63,22 +63,6 @@ ByteArray::ByteArray(const std::string& hex_str)
     }
 }
 
-ByteArray::ByteArray(const unsigned char* byte_array_raw, const int len)
-{
-    if (byte_array_raw == nullptr) {
-        throw std::invalid_argument("Null pointer provided");
-    }
-    if (len < 0) {
-        throw std::invalid_argument("Negative length is invalid");
-    }
-
-    bytes_.resize(len);
-
-    std::copy_n(byte_array_raw, len, bytes_.begin());
-}
-
-
-
 bool ByteArray::secure_wipe()
 {
     const auto options = security::unsafe::SecureErase::Options(true);
@@ -89,8 +73,6 @@ ByteArray::ByteArray(const uint64_t byte_array_long)
 {
     ByteArrayOps::uint64_to_bytearray(byte_array_long,bytes_);
 }
-
-
 
 ByteArray& ByteArray::operator=(ByteArray&& other) noexcept
 {
@@ -136,6 +118,7 @@ uint64_t ByteArray::as_64bit_uint() const
 
     return ByteArrayOps::bytearray_to_uint64(bytes_);
 }
+
 
 
 
