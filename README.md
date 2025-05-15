@@ -50,9 +50,7 @@ The Byte-Array Operations Library provides a clean, safe interface for working w
 
 using namespace jlizard;
 
-
 void example() {
-  
     // Create a ByteArray from a hex string
     ByteArray key("deadbeef");
     
@@ -74,6 +72,9 @@ void example() {
     // Or explicitly create from uint64_t
     ByteArray large_uint = ByteArray::create_from_uint64(0x1122334455667788);  // Full 8-byte representation
     
+    // Fixed-size constructor with fill value
+    ByteArray filled_array(5, 0xAA);  // Creates a 5-byte array filled with 0xAA
+    
     // XOR operation
     ByteArray result = key ^ iv;
     
@@ -87,7 +88,23 @@ void example() {
     // Iterate through the bytes 
     for (auto byte : result) 
     { 
-      // Process each byte
+        // Process each byte
+    }
+    
+    // Access bytes using subscript operator with bounds checking
+    try {
+        unsigned char first_byte = result[0];  // Safe access with bounds checking
+        // Trying to access an out-of-bounds index would throw std::out_of_range
+        // unsigned char invalid = result[1000];  // This would throw if result.size() < 1001
+    } catch (const std::out_of_range& e) {
+        // Handle the exception
+    }
+    
+    // Using at() method for bounds-checked access
+    try {
+        unsigned char third_byte = result.at(2);  // Safe access with bounds checking
+    } catch (const std::out_of_range& e) {
+        // Handle the exception
     }
     
     // Single-byte operations (requires explicit cast)
@@ -99,13 +116,19 @@ void example() {
     // Reassignment with initializer list (still works)
     modified = {0x11, 0x22, 0x33};  // Replace contents with new values
     
+    // Copy and move semantics
+    ByteArray copy = key;  // Copy constructor
+    ByteArray moved = std::move(copy);  // Move constructor
+    
+    ByteArray assign_to;
+    assign_to = key;  // Copy assignment
+    
+    ByteArray move_to;
+    move_to = std::move(moved);  // Move assignment
+    
     // When done with sensitive data, wipe it securely
     key.secure_wipe();
-
-
-
 }
-
 ```
 
 ### Example use with OpenSSL (Optional)

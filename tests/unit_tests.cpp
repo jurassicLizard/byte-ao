@@ -34,86 +34,86 @@ using namespace jlizard;
 void test_hex_string_constructor() {
     ByteArray b1("fe81eabd5");
     assert(b1.size() == 5);
-    assert(b1.data()[0] == 0xfe);
-    assert(b1.data()[1] == 0x81);
-    assert(b1.data()[2] == 0xea);
-    assert(b1.data()[3] == 0xbd);
-    assert(b1.data()[4] == 0x05);
+    assert(b1[0] == 0xfe);
+    assert(b1[1] == 0x81);
+    assert(b1[2] == 0xea);
+    assert(b1[3] == 0xbd);
+    assert(b1[4] == 0x05);
 
     ByteArray b2("abcdef0123");
     assert(b2.size() == 5);
-    assert(b2.data()[0] == 0xab);
-    assert(b2.data()[1] == 0xcd);
-    assert(b2.data()[2] == 0xef);
-    assert(b2.data()[3] == 0x01);
-    assert(b2.data()[4] == 0x23);
+    assert(b2[0] == 0xab);
+    assert(b2[1] == 0xcd);
+    assert(b2[2] == 0xef);
+    assert(b2[3] == 0x01);
+    assert(b2[4] == 0x23);
 }
 
 // Test vector constructor
 void test_vector_constructor() {
     std::vector<unsigned char> vec{0xB8, 0xAB, 0xAF, 0xFF};
-    ByteArray b1(vec);
+    const ByteArray b1(vec);
     assert(b1.size() == 4);
-    assert(b1.data()[0] == 0xB8);
-    assert(b1.data()[1] == 0xAB);
-    assert(b1.data()[2] == 0xAF);
-    assert(b1.data()[3] == 0xFF);
+    assert(b1[0] == 0xB8);
+    assert(b1[1] == 0xAB);
+    assert(b1[2] == 0xAF);
+    assert(b1[3] == 0xFF);
 
     std::vector<unsigned char> empty_vec;
-    ByteArray b2(empty_vec);
+    const ByteArray b2(empty_vec);
     assert(b2.size() == 0);
 
     std::vector<unsigned char> move_vec{0x01, 0x02, 0x03};
     ByteArray b3(std::move(move_vec));
     assert(b3.size() == 3);
-    assert(b3.data()[0] == 0x01);
-    assert(b3.data()[1] == 0x02);
-    assert(b3.data()[2] == 0x03);
+    assert(b3[0] == 0x01);
+    assert(b3[1] == 0x02);
+    assert(b3[2] == 0x03);
     assert(move_vec.empty());
 }
 
 // Test initializer list constructor
 void test_initializer_list_constructor() {
-    ByteArray b1({0xAF, 0xFF, 0xBA});
+    const ByteArray b1({0xAF, 0xFF, 0xBA});
     assert(b1.size() == 3);
-    assert(b1.data()[0] == 0xAF);
-    assert(b1.data()[1] == 0xFF);
-    assert(b1.data()[2] == 0xBA);
+    assert(b1[0] == 0xAF);
+    assert(b1[1] == 0xFF);
+    assert(b1[2] == 0xBA);
 
-    ByteArray b2({});
+    const ByteArray b2({});
     assert(b2.size() == 0);
 
-    ByteArray b3({0x42});
+    const ByteArray b3({0x42});
     assert(b3.size() == 1);
-    assert(b3.data()[0] == 0x42);
+    assert(b3[0] == 0x42);
 }
 
 
 // Test single byte constructor
 void test_single_byte_constructor() {
     // Test with explicit construction
-    ByteArray b1(static_cast<unsigned char>(0xAA));
+    const ByteArray b1(static_cast<unsigned char>(0xAA));
     assert(b1.size() == 1);
-    assert(b1.data()[0] == 0xAA);
+    assert(b1[0] == 0xAA);
 
-    ByteArray b2(static_cast<unsigned char>(0x00));
+    const ByteArray b2(static_cast<unsigned char>(0x00));
     assert(b2.size() == 1);
-    assert(b2.data()[0] == 0x00);
+    assert(b2[0] == 0x00);
 
-    ByteArray b3(static_cast<unsigned char>(0xFF));
+    const ByteArray b3(static_cast<unsigned char>(0xFF));
     assert(b3.size() == 1);
-    assert(b3.data()[0] == 0xFF);
+    assert(b3[0] == 0xFF);
 
     // Test single byte init list conversion
-    ByteArray b4 = {0xBB};
+    const ByteArray b4 = {0xBB};
     assert(b4.size() == 1);
-    assert(b4.data()[0] == 0xBB);
+    assert(b4[0] == 0xBB);
 
     // Test copy assignment with implicit conversion
-    ByteArray b5;
+    ByteArray b5; // NOLINT
     b5 = {0xCC};  // Should work with init-list constructor
     assert(b5.size() == 1);
-    assert(b5.data()[0] == 0xCC);
+    assert(b5[0] == 0xCC);
 }
 
 // Test XOR operators
@@ -124,9 +124,9 @@ void test_xor_operators() {
     ByteArray b3 = b1 ^ b2;
 
     assert(b3.size() == 3);
-    assert(b3.data()[0] == (0xAA ^ 0x55));
-    assert(b3.data()[1] == (0xBB ^ 0x44));
-    assert(b3.data()[2] == (0xCC ^ 0x33));
+    assert(b3[0] == (0xAA ^ 0x55));
+    assert(b3[1] == (0xBB ^ 0x44));
+    assert(b3[2] == (0xCC ^ 0x33));
 
     // Test XOR with unequal lengths (right-aligned)
     const ByteArray b4({0xAA, 0xBB});
@@ -135,18 +135,18 @@ void test_xor_operators() {
 
     assert(b6.size() == 3);
     // With right alignment, b4 is aligned at the end of b6
-    assert(b6.data()[0] == 0x11);  // Only b5's first byte
-    assert(b6.data()[1] == (0xAA ^ 0x22));  // First byte of b4 XORed with second byte of b5
-    assert(b6.data()[2] == (0xBB ^ 0x33));  // Second byte of b4 XORed with third byte of b5
+    assert(b6[0] == 0x11);  // Only b5's first byte
+    assert(b6[1] == (0xAA ^ 0x22));  // First byte of b4 XORed with second byte of b5
+    assert(b6[2] == (0xBB ^ 0x33));  // Second byte of b4 XORed with third byte of b5
 
     // Test XOR with single byte (right-aligned)
     const ByteArray b7({0x12, 0x34, 0x56});
     ByteArray b8 = b7 ^ 0xFF;
 
     assert(b8.size() == 3);
-    assert(b8.data()[0] == 0x12);  // Unchanged
-    assert(b8.data()[1] == 0x34);  // Unchanged
-    assert(b8.data()[2] == (0x56 ^ 0xFF));  // Only last byte gets XORed
+    assert(b8[0] == 0x12);  // Unchanged
+    assert(b8[1] == 0x34);  // Unchanged
+    assert(b8[2] == (0x56 ^ 0xFF));  // Only last byte gets XORed
 
     // Test XOR-assignment
     ByteArray b9({0xA0, 0xB0, 0xC0});
@@ -154,20 +154,19 @@ void test_xor_operators() {
     b9 ^= b10;
 
     assert(b9.size() == 3);
-    assert(b9.data()[0] == (0xA0 ^ 0x0A));
-    assert(b9.data()[1] == (0xB0 ^ 0x0B));
-    assert(b9.data()[2] == (0xC0 ^ 0x0C));
+    assert(b9[0] == (0xA0 ^ 0x0A));
+    assert(b9[1] == (0xB0 ^ 0x0B));
+    assert(b9[2] == (0xC0 ^ 0x0C));
 
     // Test XOR-assignment with single byte (right-aligned)
     ByteArray b11({0x11, 0x22, 0x33});
     b11 ^= 0x01;
 
     assert(b11.size() == 3);
-    assert(b11.data()[0] == 0x11);  // Unchanged
-    assert(b11.data()[1] == 0x22);  // Unchanged
-    assert(b11.data()[2] == (0x33 ^ 0x01));  // Only last byte gets XORed
+    assert(b11[0] == 0x11);  // Unchanged
+    assert(b11[1] == 0x22);  // Unchanged
+    assert(b11[2] == (0x33 ^ 0x01));  // Only last byte gets XORed
 }
-
 // Test copy and move semantics
 void test_copy_move_semantics() {
     // Test copy constructor
@@ -418,6 +417,74 @@ void test_size_and_value_constructor() {
     assert(b4.data()[large_size - 1] == 0xFF);
 }
 
+// Test subscript operator bounds checking
+void test_subscript_operator_bounds_checking() {
+    // Create a test ByteArray with known values
+    ByteArray ba({0x11, 0x22, 0x33, 0x44, 0x55});
+
+    // Test valid access - should not throw
+    bool exception_thrown = false;
+    try {
+        // Access each valid index
+        assert(ba[0] == 0x11);
+        assert(ba[1] == 0x22);
+        assert(ba[2] == 0x33);
+        assert(ba[3] == 0x44);
+        assert(ba[4] == 0x55);
+    } catch (const std::out_of_range&) {
+        exception_thrown = true;
+    }
+    assert(!exception_thrown);
+
+    // Test out-of-bounds access - should throw std::out_of_range
+    exception_thrown = false;
+    try {
+        const unsigned char& value = ba[5]; // One past the end
+        (void)value; // Prevent unused variable warning
+    } catch (const std::out_of_range&) {
+        exception_thrown = true;
+    }
+    assert(exception_thrown && "Out of range exception should be thrown");
+
+    // Test access on empty ByteArray
+    ByteArray empty_ba; // NOLINT
+    exception_thrown = false;
+    try {
+        const unsigned char& value = empty_ba[0];
+        (void)value; // Prevent unused variable warning
+    } catch (const std::out_of_range&) {
+        exception_thrown = true;
+    }
+    assert(exception_thrown && "Out of range exception should be thrown");
+
+    // Test with large index
+    exception_thrown = false;
+    try {
+        const unsigned char& value = ba[SIZE_MAX]; //NOLINT
+        (void)value; // Prevent unused variable warning
+    } catch (const std::out_of_range&) {
+        exception_thrown = true;
+    }
+    assert(exception_thrown && "Out of range exception should be thrown");
+
+    // Verify const correctness - operator[] should not allow modification
+    // This is a compile-time check, not a runtime check
+    const ByteArray const_ba({0xAA, 0xBB, 0xCC});
+    assert(const_ba[0] == 0xAA);
+    assert(const_ba[1] == 0xBB);
+    assert(const_ba[2] == 0xCC);
+
+    // Test that const version throws on out-of-bounds
+    exception_thrown = false;
+    try {
+        const unsigned char& value = const_ba[3];
+        (void)value; // Prevent unused variable warning
+    } catch (const std::out_of_range&) {
+        exception_thrown = true;
+    }
+    assert(exception_thrown && "Out of range exception should be thrown");
+}
+
 // Main test function
 int main() {
     test_hex_string_constructor();
@@ -431,6 +498,7 @@ int main() {
     test_uint64_constructor_and_conversion();
     test_as_64bit_uint_exceptions();
     test_size_and_value_constructor();
+    test_subscript_operator_bounds_checking();
 
     std::cout << "All tests passed successfully!" << std::endl;
     return 0;

@@ -29,6 +29,7 @@
 #define JLBA_DEFAULT_ALLOC_SIZE 32
 
 #include <cstdint>
+#include <stdexcept>
 #include <vector>
 #include <string>
 
@@ -102,6 +103,31 @@ namespace jlizard
         //get as 64bit unsigned long , if byte array is too large we throw an invalid argument exception
         [[nodiscard]] uint64_t as_64bit_uint() const;
         static ByteArray create_from_uint64(const uint64_t byte_array_long);
+
+        /**
+         * @brief Access the byte at the specified index with bounds checking
+         *
+         * Unlike standard library containers, this operator performs bounds checking
+         * to prevent undefined behavior. If the index is out of bounds, a std::out_of_range
+         * exception will be thrown.
+         *
+         * @param index The zero-based index of the byte to access
+         * @return A const reference to the byte at the specified index
+         * @throws std::out_of_range If index is out of bounds
+         * @see at() For similar bounds-checked access
+         */
+        const unsigned char& operator[](const size_t index) const {
+             return bytes_.at(index);
+        }
+
+        // Bounds-checking accessor - allows modification
+        // Not noexcept because it can throw std::out_of_range
+        unsigned char& at(const size_t index) { return bytes_.at(index); }
+
+        // Const bounds-checking accessor - prevents modification
+        // Not noexcept because it can throw std::out_of_range
+        [[nodiscard]] const unsigned char& at(const size_t index) const { return bytes_.at(index); }
+
 
     };
 
