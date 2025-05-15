@@ -58,13 +58,13 @@ namespace jlizard
         explicit ByteArray(const std::string& hex_str);
         explicit ByteArray(const std::vector<unsigned char>& byte_array): bytes_(byte_array) {};
         explicit ByteArray(std::vector<unsigned char>&& byte_array) noexcept : bytes_(std::move(byte_array)) {};
-        explicit ByteArray(const uint64_t byte_array_long);
         explicit ByteArray(const size_t num_bytes, const unsigned char val) noexcept : bytes_(num_bytes,val) {};
         /**
          * Creates a ByteArray containing a single byte.
          * @param byte The single byte value to store
          */
-        explicit ByteArray(unsigned char byte):bytes_(1,byte) {};
+        template <typename T> requires std::is_same_v<T, unsigned char>
+        explicit ByteArray(T byte): bytes_(1,byte) {};
         /**
          * @brief Takes a string hex input and converts it to a byte array
          * @param hex_str
@@ -101,6 +101,7 @@ namespace jlizard
         // utility methods
         //get as 64bit unsigned long , if byte array is too large we throw an invalid argument exception
         [[nodiscard]] uint64_t as_64bit_uint() const;
+        static ByteArray create_from_uint64(const uint64_t byte_array_long);
 
     };
 

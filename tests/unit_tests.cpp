@@ -88,8 +88,10 @@ void test_initializer_list_constructor() {
     assert(b3.data()[0] == 0x42);
 }
 
+
 // Test single byte constructor
 void test_single_byte_constructor() {
+    // Test with explicit construction
     ByteArray b1(static_cast<unsigned char>(0xAA));
     assert(b1.size() == 1);
     assert(b1.data()[0] == 0xAA);
@@ -101,6 +103,17 @@ void test_single_byte_constructor() {
     ByteArray b3(static_cast<unsigned char>(0xFF));
     assert(b3.size() == 1);
     assert(b3.data()[0] == 0xFF);
+
+    // Test single byte init list conversion
+    ByteArray b4 = {0xBB};
+    assert(b4.size() == 1);
+    assert(b4.data()[0] == 0xBB);
+
+    // Test copy assignment with implicit conversion
+    ByteArray b5;
+    b5 = {0xCC};  // Should work with init-list constructor
+    assert(b5.size() == 1);
+    assert(b5.data()[0] == 0xCC);
 }
 
 // Test XOR operators
@@ -287,7 +300,7 @@ void test_secure_erase() {
 void test_uint64_constructor_and_conversion() {
     // Test constructor with small value
     constexpr uint64_t small_value = 42;
-    ByteArray ba1(small_value);
+    ByteArray ba1 = {small_value};
 
     // Check correct construction (should use big-endian byte order)
     assert(ba1.size() == 1);
@@ -298,7 +311,7 @@ void test_uint64_constructor_and_conversion() {
 
     // Test constructor with multi-byte value
     constexpr uint64_t multi_byte = 0x1122334455667788;
-    ByteArray ba2(multi_byte);
+    ByteArray ba2 = ByteArray::create_from_uint64(multi_byte);
 
     // Check correct byte count and values (big-endian byte order)
     assert(ba2.size() == 8);
@@ -316,7 +329,7 @@ void test_uint64_constructor_and_conversion() {
 
     // Test with value that doesn't need all 8 bytes
     constexpr uint64_t medium_value = 0x112233;
-    ByteArray ba3(medium_value);
+    ByteArray ba3= ByteArray::create_from_uint64(medium_value);
 
     // Should only use 3 bytes
     assert(ba3.size() == 3);
@@ -329,7 +342,7 @@ void test_uint64_constructor_and_conversion() {
 
     // Test with 0
     constexpr uint64_t zero_value = 0;
-    ByteArray ba4(zero_value);
+    ByteArray ba4 = ByteArray::create_from_uint64(zero_value);
 
     // Should produce a 1-byte array with value 0
     assert(ba4.size() == 1);

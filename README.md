@@ -47,7 +47,7 @@ The Byte-Array Operations Library provides a clean, safe interface for working w
 
 ```cpp
 #include "jlizard/byte_array.h"
-#include "jlizard/byte_array_ops.h"
+
 using namespace jlizard;
 
 
@@ -58,6 +58,21 @@ void example() {
     
     // Create from an initializer list
     ByteArray iv({0x01, 0x02, 0x03, 0x04});
+    
+    // Use initializer list for defining byte sequences
+    ByteArray bytes = {0xAA, 0xBB, 0xCC, 0xDD};  // Uses initializer_list constructor
+    
+    // Create from a single byte (requires explicit cast)
+    ByteArray single_byte(static_cast<unsigned char>(0x42));
+    // Or create via initializer list
+    ByteArray another_single_byte = {0x42};
+    
+    // Create from uint64_t values
+    // INCORRECT: ByteArray small_uint = 42;  // No longer allowed - prevents accidental truncation
+    // CORRECT:
+    ByteArray small_uint = {42};  // Using initializer list for a single value
+    // Or explicitly create from uint64_t
+    ByteArray large_uint = ByteArray::create_from_uint64(0x1122334455667788);  // Full 8-byte representation
     
     // XOR operation
     ByteArray result = key ^ iv;
@@ -74,13 +89,25 @@ void example() {
     { 
       // Process each byte
     }
+    
+    // Single-byte operations (requires explicit cast)
+    ByteArray modified = result;
+    // INCORRECT: modified ^= 0xFF;  // No longer allowed
+    // CORRECT:
+    modified ^= static_cast<unsigned char>(0xFF);  // XOR the last byte with 0xFF
+    
+    // Reassignment with initializer list (still works)
+    modified = {0x11, 0x22, 0x33};  // Replace contents with new values
+    
     // When done with sensitive data, wipe it securely
-     key.secure_wipe();
+    key.secure_wipe();
+
+
 
 }
 
-
 ```
+
 ### Example use with OpenSSL (Optional)
 
 ByteArrayOps can be used alongside other cryptographic libraries like OpenSSL:
@@ -89,7 +116,59 @@ ByteArrayOps can be used alongside other cryptographic libraries like OpenSSL:
 - **Consistent Memory Handling**: Apply secure memory practices when interfacing with OpenSSL functions
 - **Simplified API**: Wrapper functions to reduce the complexity of common OpenSSL operations
 
-*Note: Examples are WIP and will be added soon 
+```cpp
+#include "jlizard/byte_array.h"
+#include "jlizard/crypto_handler.h"
+
+using namespace jlizard;
+
+void openssl_decryption_example() {
+    // Create a 256-bit key (32 bytes)
+    ByteArray key({0x80, 0x00, 0x00, 0x00, 0x00, 
+                   0x00, 0x00, 0x00, 0x00, 0x00,
+                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01});
+
+    // A 128-bit IV (16 bytes)
+    ByteArray iv({0x00, 0x00, 0x00, 0x00, 0x00,
+                  0x00, 0x00, 0x00, 0x00,
+                  0x00, 0x00, 0x00, 0x00,
+                  0x00, 0x00, 0x00});
+
+    // Encrypted message to be decrypted
+    ByteArray ciphertext = {0x53, 0x9B, 0x33, 0x3b, 0x39,
+                            0x70, 0x6d, 0x14, 0x90, 0x28,
+                            0xcf, 0xe1, 0xd9, 0xd4,
+                            0xa4, 0x07};
+
+    // Initialize output buffer for plaintext
+    ByteArray plaintext(16, 0x00);  // 16 bytes initialized to zero
+    
+    // Create a crypto handler for AES-256-CBC
+    CryptoHandler ch(EVP_aes_256_cbc());
+    
+    // Decrypt the ciphertext using OpenSSL's EVP interface (inside decrypt function)
+    int decrypted_len = ch.decrypt(
+        ciphertext.data(), ciphertext.size(),
+        key.data(), iv.data(),
+        plaintext.data()
+    );
+    
+    // plaintext now contains the decrypted data
+    // Use BIO_dump_fp from the openssl library to print the result
+    // BIO_dump_fp(stdout, (const char *)plaintext.data(), decrypted_len);
+    
+    // Don't forget to wipe sensitive data when done
+    key.secure_wipe();
+    iv.secure_wipe();
+    plaintext.secure_wipe();
+}
+```
+
+### Other Examples
+
+Check [Unit Tests](tests/unit_tests.cpp) that contain ample examples on the usage of this library
 
 ## Building and Usage
 

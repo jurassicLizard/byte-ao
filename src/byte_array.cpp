@@ -69,11 +69,6 @@ bool ByteArray::secure_wipe()
     return security::unsafe::SecureErase::secure_zero_vector(bytes_,options);
 }
 
-ByteArray::ByteArray(const uint64_t byte_array_long)
-{
-    ByteArrayOps::uint64_to_bytearray(byte_array_long,bytes_);
-}
-
 ByteArray& ByteArray::operator=(ByteArray&& other) noexcept
 {
     if (this != &other) {
@@ -119,6 +114,12 @@ uint64_t ByteArray::as_64bit_uint() const
     return ByteArrayOps::bytearray_to_uint64(bytes_);
 }
 
+ByteArray ByteArray::create_from_uint64(const uint64_t byte_array_long)
+{
+    ByteArray b;
+    ByteArrayOps::uint64_to_bytearray(byte_array_long,b.bytes_);
+    return b;
+}
 
 
 
