@@ -25,7 +25,6 @@
  */
 
 #include "jlizard/byte_array.h"
-#include "jlizard/byte_array_ops.h"
 #include <cassert>
 #include <iostream>
 
