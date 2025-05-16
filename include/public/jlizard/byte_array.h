@@ -105,10 +105,22 @@ namespace jlizard
         [[nodiscard]] auto end() const noexcept { return bytes_.end(); }
 
         /**
-         * @brief  resize utility that calls the resize function on the underlying vector
-         * this has the same behaviour and caveats as the std::vector resize() utility
+         * @brief Resize utility that calls the resize function on the underlying vector.
+         * This has the same behavior and caveats as the std::vector resize() utility.
+         *
+         * @param new_size The new size to resize the ByteArray to
          */
-         void resize(size_t new_size) { bytes_.resize(new_size); }
+         void resize(size_t new_size) { bytes_.resize(new_size); };
+
+        /**
+         * @brief Clears all elements from the ByteArray.
+         *
+         * Removes all elements from the underlying vector, leaving it with a size of 0.
+         * The capacity of the vector is not affected, and no reallocation happens.
+         * All references, pointers, and iterators to elements are invalidated.
+         */
+        constexpr void clear() noexcept { bytes_.clear(); }
+
         // utility methods
         //get as 64bit unsigned long , if byte array is too large we throw an invalid argument exception
         [[nodiscard]] uint64_t as_64bit_uint() const;
