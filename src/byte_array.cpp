@@ -110,13 +110,6 @@ ByteArray ByteArray::operator~() const {
     return result;
 }
 
-ByteArray& ByteArray::operator~() {
-    // Apply complement in-place using the static method
-    ByteArrayOps::complement(this->bytes_, this->bytes_);
-    return *this;
-}
-
-
 uint64_t ByteArray::as_64bit_uint() const
 {
     if (bytes_.size() > 8)

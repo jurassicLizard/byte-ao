@@ -488,7 +488,7 @@ void test_subscript_operator_bounds_checking() {
 // Test complement operators
 void test_complement_operators() {
     // Test unary complement operator (~) - returns a new ByteArray
-    const ByteArray b1({0xAA, 0xBB, 0xCC});
+    ByteArray b1({0xAA, 0xBB, 0xCC});
     ByteArray b2 = ~b1;
 
     assert(b2.size() == 3);
@@ -517,9 +517,17 @@ void test_complement_operators() {
     assert(exception_thrown && "Complement of empty ByteArray should throw");
 
     // Verify original ByteArray is unchanged by ~ operator
+    assert(b1.size() == 3);
     assert(b1[0] == 0xAA);
     assert(b1[1] == 0xBB);
     assert(b1[2] == 0xCC);
+
+    // Test in-place complementation
+     b1 = ~b1;
+    assert(b1.size() == 3);
+    assert(b1[0] == static_cast<unsigned char>(~0xAA)); // 0x55
+    assert(b1[1] == static_cast<unsigned char>(~0xBB)); // 0x44
+    assert(b1[2] == static_cast<unsigned char>(~0xCC)); // 0x33
 }
 
 // Main test function

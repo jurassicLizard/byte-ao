@@ -96,8 +96,7 @@ namespace jlizard
         // 1's complement operator (unary ~)
         ByteArray operator~() const;
 
-        // 1's complement assignment operator
-        ByteArray& operator~();        // Logical operation end
+        // Logical operation end
 
         // accessor methods
         [[nodiscard]] unsigned char* data() noexcept { return bytes_.data(); }
