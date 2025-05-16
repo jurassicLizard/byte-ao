@@ -1,0 +1,33 @@
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.0.3] - 2025-05-16
+
+### Added
+- One's complement operator (`operator~`) that flips all bits in a ByteArray
+- Unit tests for complement operations
+- Updated documentation with examples of complement operator usage
+
+## [0.0.2] - 2025-05-13
+
+### Added
+- Secure memory wiping for sensitive data
+- XOR operation with proper alignment semantics
+- Multiple construction methods (hex strings, byte vectors, initializer lists)
+- Conversion between ByteArray and uint64_t
+- Comprehensive test suite for core functionality
+
+### Fixed
+- Memory handling for copy and move operations
+- Bounds checking for array access
+
+## [0.0.1] - 2025-04-21
+
+### Added
+- Initial implementation of ByteArray class
+- Basic byte array construction and manipulation
+- Core memory management functionality
+- Project scaffolding and build system

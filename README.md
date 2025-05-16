@@ -35,7 +35,7 @@ The Byte-Array Operations Library provides a clean, safe interface for working w
 ## Features
 
 - **Multiple Construction Methods**: Create byte arrays from hex strings, raw bytes, or numeric values
-- **Bitwise Operations**: XOR operations with proper alignment semantics
+- **Bitwise Operations**: XOR and complement operations with proper alignment semantics
 - **Secure Memory Handling**: Methods to securely erase sensitive data from memory
 - **Modern C++ Design**: Uses move semantics, RAII principles, and C++17 features
 - **Conversion Utilities**: Easily convert between byte arrays and numeric types
@@ -115,6 +115,16 @@ void example() {
     
     // Reassignment with initializer list (still works)
     modified = {0x11, 0x22, 0x33};  // Replace contents with new values
+    
+     // One's complement operation (bitwise NOT)
+    ByteArray original({0xAA, 0xBB, 0xCC});
+    ByteArray complemented = ~original;  // Creates a new ByteArray with flipped bits
+    // original remains {0xAA, 0xBB, 0xCC}
+    // complemented is {0x55, 0x44, 0x33}
+    
+    // In-place complement is possible with assignment
+    ByteArray to_modify({0xFF, 0x00});
+    to_modify = ~to_modify;  // Now contains {0x00, 0xFF}
     
     // Copy and move semantics
     ByteArray copy = key;  // Copy constructor
@@ -279,11 +289,16 @@ This library includes functionality to securely erase sensitive data from memory
 
 **Note on Secure Wipe Testing:** The secure memory wiping procedures, while implemented, are not yet thoroughly tested with unit tests. This functionality should be considered a work in progress from a verification standpoint.
 
+## Changelog
+
+For a complete list of changes and version history, see the [CHANGELOG.md](CHANGELOG.md) file.
+
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## WIPs and TODOs
-- Add additional bitwise operations (AND, OR, NAND, one's complement, two's complement)
+- Add additional bitwise operations (AND, OR, NAND, two's complement)
+- ✅ Add one's complement operation
 - Add bit manipulation operations (bit shifting, rotation, bit extraction, bit counting)
 - Add comparison operations (equality, less than, greater than)
 - Add endianness conversion utilities (big-endian to little-endian and vice versa)

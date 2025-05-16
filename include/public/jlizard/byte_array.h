@@ -80,6 +80,7 @@ namespace jlizard
 
         bool secure_wipe();
 
+        // Logical Operations Begin
         // XOR-assignment operator
         ByteArray& operator^=(const ByteArray& other);
 
@@ -92,6 +93,11 @@ namespace jlizard
         // XOR-assignment with a single byte
         ByteArray& operator^=(unsigned char byte);
 
+        // 1's complement operator (unary ~)
+        ByteArray operator~() const;
+
+        // 1's complement assignment operator
+        ByteArray& operator~();        // Logical operation end
 
         // accessor methods
         [[nodiscard]] unsigned char* data() noexcept { return bytes_.data(); }

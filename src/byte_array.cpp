@@ -103,6 +103,19 @@ ByteArray& ByteArray::operator^=(unsigned char byte)
     return *this;
 }
 
+ByteArray ByteArray::operator~() const {
+    // Create a new ByteArray by using the static complement function
+    ByteArray result;
+    result.bytes_ = ByteArrayOps::complement(this->bytes_);
+    return result;
+}
+
+ByteArray& ByteArray::operator~() {
+    // Apply complement in-place using the static method
+    ByteArrayOps::complement(this->bytes_, this->bytes_);
+    return *this;
+}
+
 
 uint64_t ByteArray::as_64bit_uint() const
 {

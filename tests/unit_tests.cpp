@@ -485,6 +485,43 @@ void test_subscript_operator_bounds_checking() {
     assert(exception_thrown && "Out of range exception should be thrown");
 }
 
+// Test complement operators
+void test_complement_operators() {
+    // Test unary complement operator (~) - returns a new ByteArray
+    const ByteArray b1({0xAA, 0xBB, 0xCC});
+    ByteArray b2 = ~b1;
+
+    assert(b2.size() == 3);
+    assert(b2[0] == static_cast<unsigned char>(~0xAA)); // 0x55
+    assert(b2[1] == static_cast<unsigned char>(~0xBB)); // 0x44
+    assert(b2[2] == static_cast<unsigned char>(~0xCC)); // 0x33
+
+    // Test in-place complement operator
+    ByteArray b3({0x00, 0xFF, 0x55});
+    b3 = ~b3;
+
+    assert(b3.size() == 3);
+    assert(b3[0] == 0xFF); // ~0x00 = 0xFF
+    assert(b3[1] == 0x00); // ~0xFF = 0x00
+    assert(b3[2] == 0xAA); // ~0x55 = 0xAA
+
+    // Test complement of empty ByteArray
+    ByteArray empty;
+    bool exception_thrown = false;
+    try {
+        ByteArray result = ~empty;
+        (void)result; // Prevent unused variable warning
+    } catch (const std::invalid_argument&) {
+        exception_thrown = true;
+    }
+    assert(exception_thrown && "Complement of empty ByteArray should throw");
+
+    // Verify original ByteArray is unchanged by ~ operator
+    assert(b1[0] == 0xAA);
+    assert(b1[1] == 0xBB);
+    assert(b1[2] == 0xCC);
+}
+
 // Main test function
 int main() {
     test_hex_string_constructor();
@@ -499,6 +536,7 @@ int main() {
     test_as_64bit_uint_exceptions();
     test_size_and_value_constructor();
     test_subscript_operator_bounds_checking();
+    test_complement_operators();
 
     std::cout << "All tests passed successfully!" << std::endl;
     return 0;
