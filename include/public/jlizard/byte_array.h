@@ -104,6 +104,11 @@ namespace jlizard
         [[nodiscard]] auto begin() const noexcept { return bytes_.begin(); }
         [[nodiscard]] auto end() const noexcept { return bytes_.end(); }
 
+        /**
+         * @brief  resize utility that calls the resize function on the underlying vector
+         * this has the same behaviour and caveats as the std::vector resize() utility
+         */
+         void resize(size_t new_size) { bytes_.resize(new_size); }
         // utility methods
         //get as 64bit unsigned long , if byte array is too large we throw an invalid argument exception
         [[nodiscard]] uint64_t as_64bit_uint() const;
