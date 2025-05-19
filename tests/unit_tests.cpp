@@ -24,6 +24,8 @@
  *
  */
 
+#include <array>
+
 #include "jlizard/byte_array.h"
 #include <cassert>
 #include <iostream>
@@ -530,6 +532,68 @@ void test_complement_operators() {
     assert(b1[2] == static_cast<unsigned char>(~0xCC)); // 0x33
 }
 
+// Test iterator range constructor
+void test_iterator_range_constructor() {
+    // Test with std::vector
+    std::vector<unsigned char> vec{0x11, 0x22, 0x33, 0x44, 0x55};
+    ByteArray from_vector(vec.begin(), vec.end());
+
+    assert(from_vector.size() == 5);
+    assert(from_vector[0] == 0x11);
+    assert(from_vector[1] == 0x22);
+    assert(from_vector[2] == 0x33);
+    assert(from_vector[3] == 0x44);
+    assert(from_vector[4] == 0x55);
+
+    // Test with partial range from a vector
+    ByteArray partial_range(vec.begin() + 1, vec.begin() + 4);
+
+    assert(partial_range.size() == 3);
+    assert(partial_range[0] == 0x22);
+    assert(partial_range[1] == 0x33);
+    assert(partial_range[2] == 0x44);
+
+    // Test with std::array
+    std::array<unsigned char, 3> arr{0xAA, 0xBB, 0xCC};
+    ByteArray from_array(arr.begin(), arr.end());
+
+    assert(from_array.size() == 3);
+    assert(from_array[0] == 0xAA);
+    assert(from_array[1] == 0xBB);
+    assert(from_array[2] == 0xCC);
+
+    // Test with another ByteArray's iterators
+    ByteArray original({0x01, 0x02, 0x03, 0x04, 0x05});
+    ByteArray from_bytearray(original.begin() + 1, original.end() - 1);
+
+    assert(from_bytearray.size() == 3);
+    assert(from_bytearray[0] == 0x02);
+    assert(from_bytearray[1] == 0x03);
+    assert(from_bytearray[2] == 0x04);
+
+    // Test with empty range
+    ByteArray empty_range(vec.begin(), vec.begin());
+    assert(empty_range.size() == 0);
+
+    // Test with C-style array
+    unsigned char c_array[] = {0xDD, 0xEE, 0xFF};
+    ByteArray from_c_array(std::begin(c_array), std::end(c_array));
+
+    assert(from_c_array.size() == 3);
+    assert(from_c_array[0] == 0xDD);
+    assert(from_c_array[1] == 0xEE);
+    assert(from_c_array[2] == 0xFF);
+
+    // Test with string (as a sequence of bytes)
+    std::string str = "ABC";
+    ByteArray from_string(str.begin(), str.end());
+
+    assert(from_string.size() == 3);
+    assert(from_string[0] == 'A');
+    assert(from_string[1] == 'B');
+    assert(from_string[2] == 'C');
+}
+
 // Main test function
 int main() {
     test_hex_string_constructor();
@@ -545,6 +609,7 @@ int main() {
     test_size_and_value_constructor();
     test_subscript_operator_bounds_checking();
     test_complement_operators();
+    test_iterator_range_constructor();
 
     std::cout << "All tests passed successfully!" << std::endl;
     return 0;

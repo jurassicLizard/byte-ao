@@ -60,6 +60,20 @@ namespace jlizard
         explicit ByteArray(const std::vector<unsigned char>& byte_array): bytes_(byte_array) {};
         explicit ByteArray(std::vector<unsigned char>&& byte_array) noexcept : bytes_(std::move(byte_array)) {};
         explicit ByteArray(const size_t num_bytes, const unsigned char val) noexcept : bytes_(num_bytes,val) {};
+         /**
+         * @brief Constructs a ByteArray with contents from an iterator range.
+         *
+         * Creates a ByteArray with copies of elements in the range [first, last).
+         * This constructor allows creating a ByteArray from any container or range
+         * that provides compatible iterators.
+         *
+         * @tparam InputIt Input iterator type
+         * @param first Iterator to the beginning of the range
+         * @param last Iterator to the end of the range
+         */
+        template <typename InputIt>
+        explicit ByteArray(InputIt first, InputIt last) : bytes_(first, last) {}
+
         /**
          * Creates a ByteArray containing a single byte.
          * @param byte The single byte value to store
@@ -111,6 +125,8 @@ namespace jlizard
          * @param new_size The new size to resize the ByteArray to
          */
          void resize(size_t new_size) { bytes_.resize(new_size); };
+
+
 
         /**
          * @brief Clears all elements from the ByteArray.
