@@ -41,13 +41,20 @@
 //FIXME add boolean flag for automatic secure wipe operation
 namespace jlizard
 {
-//FIXME consider aliasing unsigned char to Byte via using Byte = unsigned char;
+    /**
+     * @class ByteArray
+     * @brief A class representing a dynamic array of bytes with various utility functions
+     *        for manipulation, logical operations, and conversion.
+     */
     class ByteArray
     {
     private:
         std::vector<unsigned char> bytes_;
 
     public:
+        // Maximum size for random byte generation (1 MB)
+        static constexpr size_t MAX_RANDOM_BYTES = 1024 * 1024;
+
         // Destructor - likely trivial since std::vector handles cleanup
         ~ByteArray() = default;
         ByteArray(const ByteArray& other) = default;
@@ -92,7 +99,30 @@ namespace jlizard
          */
         ByteArray(std::initializer_list<unsigned char> bytes) : bytes_(bytes) {};
 
+        /**
+         *
+         * @return
+         */
         bool secure_wipe();
+
+        /**
+         * Concatenates a byte array to the end of this one (modifies this object)
+         * @param other The byte array to append to this array
+         * @return Reference to this ByteArray for method chaining
+         */
+        ByteArray& concat(const ByteArray& other);
+
+        /**
+         * Creates a new ByteArray by concatenating this array with another
+         * @param other The byte array to append to a copy of this array
+         * @return New ByteArray containing this array's data followed by other's data
+         */
+        ByteArray concat_copy(const ByteArray& other) const;
+
+
+
+
+
 
         // Logical Operations Begin
         // XOR-assignment operator
@@ -113,6 +143,7 @@ namespace jlizard
         // Logical operation end
 
         // accessor methods
+        // FIXME warn about the fact that downgrading the data size might leave data remnance
         [[nodiscard]] unsigned char* data() noexcept { return bytes_.data(); }
         [[nodiscard]] size_t size() const noexcept { return bytes_.size(); }
         [[nodiscard]] auto begin() const noexcept { return bytes_.begin(); }
@@ -121,7 +152,7 @@ namespace jlizard
         /**
          * @brief Resize utility that calls the resize function on the underlying vector.
          * This has the same behavior and caveats as the std::vector resize() utility.
-         *
+         * FIXME needs secure_wipe handling
          * @param new_size The new size to resize the ByteArray to
          */
          void resize(size_t new_size) { bytes_.resize(new_size); };
@@ -134,14 +165,29 @@ namespace jlizard
          * Removes all elements from the underlying vector, leaving it with a size of 0.
          * The capacity of the vector is not affected, and no reallocation happens.
          * All references, pointers, and iterators to elements are invalidated.
+         * FIXME needs secure_wipe handling
          */
         constexpr void clear() noexcept { bytes_.clear(); }
 
         // utility methods
         //get as 64bit unsigned long , if byte array is too large we throw an invalid argument exception
+        // FIXME needs documentation
         [[nodiscard]] uint64_t as_64bit_uint() const;
+        /**
+         * Creates a new ByteArray from a 64-bit unsigned integer
+         * @param byte_array_long The 64-bit value to convert to a ByteArray
+         * @return A new ByteArray containing the byte representation of the input value
+         */
         static ByteArray create_from_uint64(const uint64_t byte_array_long);
 
+        /**
+         * Creates a new ByteArray by concatenating multiple ByteArrays
+         * @param arrays An initializer list of ByteArray objects to concatenate
+         * @return A new ByteArray containing all input arrays concatenated in sequence
+         */
+        static ByteArray concat_and_create(const std::initializer_list<ByteArray>& arrays);
+
+        static ByteArray create_from_prng(const size_t num_bytes);
         /**
          * @brief Access the byte at the specified index with bounds checking
          *

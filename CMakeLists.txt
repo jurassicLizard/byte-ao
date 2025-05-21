@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.31)
-project(byte-ao VERSION 0.0.3)
+project(byte-ao VERSION 0.0.4)
 
 set(BYTEAO_PROJECT_NAME byte-ao)
 set(CMAKE_CXX_STANDARD 20)
 
-add_library(${PROJECT_NAME} STATIC
+add_library(${BYTEAO_PROJECT_NAME} STATIC
         src/byte_array_ops.cpp
         src/security_ops.cpp
         src/byte_array.cpp)

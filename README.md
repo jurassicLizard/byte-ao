@@ -139,6 +139,43 @@ void example() {
     
     // When done with sensitive data, wipe it securely
     key.secure_wipe();
+    
+        // NEW v0.0.4 features
+    
+    // Clear a byte array
+    ByteArray to_clear = {0x01, 0x02, 0x03};
+    to_clear.clear();  // Now empty with size 0
+    
+    // Resize a byte array
+    ByteArray to_resize = {0xAA, 0xBB};
+    to_resize.resize(4);  // Now has size 4 with value {0xAA, 0xBB, 0x00, 0x00}
+    to_resize.resize(1);  // Now has size 1 with value {0xAA}
+    
+    // Concatenate byte arrays (multiple methods)
+    ByteArray first = {0x01, 0x02};
+    ByteArray second = {0x03, 0x04};
+    
+    // Method 1: In-place concatenation with another ByteArray
+    ByteArray result = first;
+    result.concat(second);  // Now contains {0x01, 0x02, 0x03, 0x04}
+    
+    // Method 2: Create a new ByteArray from concatenation
+    ByteArray concat_result = first.concat_copy(second);  // Contains {0x01, 0x02, 0x03, 0x04}
+    
+    // Method 3: Static concatenation of multiple ByteArrays
+    ByteArray third = {0x05, 0x06};
+    ByteArray combined = ByteArray::concat_and_create({first, second, third});
+    // combined now contains {0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
+    
+    // Generate random bytes using PRNG
+    ByteArray random_bytes = ByteArray::create_from_prng(16);  // Create a 16-byte random array
+    // There's a 1MB limit on the size of random byte arrays
+    try {
+        // This would throw an exception
+        // ByteArray too_large = ByteArray::create_from_prng(2 * 1024 * 1024);
+    } catch (const std::invalid_argument& e) {
+        // Handle exception
+    }
 }
 ```
 
@@ -303,7 +340,7 @@ This project is licensed under the MIT License—see the [LICENSE.md](LICENSE.md
 - Add bit manipulation operations (bit shifting, rotation, bit extraction, bit counting)
 - Add comparison operations (equality, less than, greater than)
 - Add endianness conversion utilities (big-endian to little-endian and vice versa)
-- Add array manipulation functions (concatenation, splitting, slicing)
+- ✅ Add array manipulation functions (concatenation, splitting, slicing) (Partial: concatenation implemented)
 - Add search and pattern matching capabilities
 - Add serialization/deserialization support
 - Add encoding/decoding utilities (Base64, hex)
@@ -312,3 +349,4 @@ This project is licensed under the MIT License—see the [LICENSE.md](LICENSE.md
 - Add comprehensive benchmarking
 - Expand platform-specific secure memory handling
 - Add testing for secure wipe procedures
+- ✅ Add PRNG-based byte array generation

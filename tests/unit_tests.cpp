@@ -594,6 +594,212 @@ void test_iterator_range_constructor() {
     assert(from_string[2] == 'C');
 }
 
+// Test concat method
+void test_concat() {
+    // Test basic concatenation
+    ByteArray b1({0x01, 0x02, 0x03});
+    ByteArray b2({0xAA, 0xBB});
+
+    // Modify b1 by concatenating b2
+    ByteArray& result = b1.concat(b2);
+
+    // Check result size and content
+    assert(b1.size() == 5);
+    assert(b1[0] == 0x01);
+    assert(b1[1] == 0x02);
+    assert(b1[2] == 0x03);
+    assert(b1[3] == 0xAA);
+    assert(b1[4] == 0xBB);
+
+    // Verify result reference is to b1
+    assert(&result == &b1);
+
+    // Test chaining multiple concats
+    ByteArray b3({0x01, 0x02});
+    ByteArray b4({0x03, 0x04});
+    ByteArray b5({0x05, 0x06});
+
+    b3.concat(b4).concat(b5);
+
+    assert(b3.size() == 6);
+    assert(b3[0] == 0x01);
+    assert(b3[1] == 0x02);
+    assert(b3[2] == 0x03);
+    assert(b3[3] == 0x04);
+    assert(b3[4] == 0x05);
+    assert(b3[5] == 0x06);
+
+    // Test concatenating empty ByteArray
+    ByteArray b6({0xCC, 0xDD});
+    ByteArray empty;
+    b6.concat(empty);
+
+    assert(b6.size() == 2);
+    assert(b6[0] == 0xCC);
+    assert(b6[1] == 0xDD);
+
+    // Test concatenating to empty ByteArray
+    ByteArray b7;
+    ByteArray b8({0xEE, 0xFF});
+    b7.concat(b8);
+
+    assert(b7.size() == 2);
+    assert(b7[0] == 0xEE);
+    assert(b7[1] == 0xFF);
+}
+
+// Test concat_copy method
+void test_concat_copy() {
+    // Test basic copy concatenation
+    ByteArray b1({0x01, 0x02, 0x03});
+    ByteArray b2({0xAA, 0xBB});
+
+    // Create a new ByteArray with concatenated content
+    ByteArray result = b1.concat_copy(b2);
+
+    // Check result content
+    assert(result.size() == 5);
+    assert(result[0] == 0x01);
+    assert(result[1] == 0x02);
+    assert(result[2] == 0x03);
+    assert(result[3] == 0xAA);
+    assert(result[4] == 0xBB);
+
+    // Verify original arrays are unchanged
+    assert(b1.size() == 3);
+    assert(b1[0] == 0x01);
+    assert(b1[1] == 0x02);
+    assert(b1[2] == 0x03);
+
+    assert(b2.size() == 2);
+    assert(b2[0] == 0xAA);
+    assert(b2[1] == 0xBB);
+
+    // Test chaining multiple concat_copy operations
+    ByteArray b3({0x11, 0x22});
+    ByteArray b4({0x33, 0x44});
+    ByteArray b5({0x55, 0x66});
+
+    ByteArray chained = b3.concat_copy(b4).concat_copy(b5);
+
+    assert(chained.size() == 6);
+    assert(chained[0] == 0x11);
+    assert(chained[1] == 0x22);
+    assert(chained[2] == 0x33);
+    assert(chained[3] == 0x44);
+    assert(chained[4] == 0x55);
+    assert(chained[5] == 0x66);
+
+    // Test with empty ByteArray
+    ByteArray b6({0xCC, 0xDD});
+    ByteArray empty;
+
+    ByteArray result_with_empty = b6.concat_copy(empty);
+    assert(result_with_empty.size() == 2);
+    assert(result_with_empty[0] == 0xCC);
+    assert(result_with_empty[1] == 0xDD);
+
+    ByteArray empty_with_result = empty.concat_copy(b6);
+    assert(empty_with_result.size() == 2);
+    assert(empty_with_result[0] == 0xCC);
+    assert(empty_with_result[1] == 0xDD);
+}
+
+// Test concat_and_create method
+void test_concat_and_create() {
+    // Test basic static concatenation with initializer list
+    ByteArray b1({0x01, 0x02});
+    ByteArray b2({0x03, 0x04});
+    ByteArray b3({0x05, 0x06});
+
+    ByteArray result = ByteArray::concat_and_create({b1, b2, b3});
+
+    assert(result.size() == 6);
+    assert(result[0] == 0x01);
+    assert(result[1] == 0x02);
+    assert(result[2] == 0x03);
+    assert(result[3] == 0x04);
+    assert(result[4] == 0x05);
+    assert(result[5] == 0x06);
+
+    // Test with empty ByteArray in the list
+    ByteArray empty;
+    ByteArray b4({0xAA, 0xBB});
+
+    ByteArray result_with_empty = ByteArray::concat_and_create({b4, empty, b4});
+
+    assert(result_with_empty.size() == 4);
+    assert(result_with_empty[0] == 0xAA);
+    assert(result_with_empty[1] == 0xBB);
+    assert(result_with_empty[2] == 0xAA);
+    assert(result_with_empty[3] == 0xBB);
+
+    // Test with all empty ByteArrays
+    ByteArray all_empty = ByteArray::concat_and_create({empty, empty, empty});
+    assert(all_empty.size() == 0);
+
+    // Test with single ByteArray
+    ByteArray single = ByteArray::concat_and_create({b4});
+    assert(single.size() == 2);
+    assert(single[0] == 0xAA);
+    assert(single[1] == 0xBB);
+
+    // Test with empty initializer list
+    ByteArray no_arrays = ByteArray::concat_and_create({});
+    assert(no_arrays.size() == 0);
+
+    // Test that originals are unchanged
+    assert(b1.size() == 2);
+    assert(b1[0] == 0x01);
+    assert(b1[1] == 0x02);
+
+    assert(b2.size() == 2);
+    assert(b2[0] == 0x03);
+    assert(b2[1] == 0x04);
+
+    assert(b3.size() == 2);
+    assert(b3[0] == 0x05);
+    assert(b3[1] == 0x06);
+}
+
+void test_create_from_prng() {
+    // Test basic random generation
+    constexpr size_t small_size = 10;
+    ByteArray random1 = ByteArray::create_from_prng(small_size);
+    assert(random1.size() == small_size);
+
+    // Generate another array to compare
+    ByteArray random2 = ByteArray::create_from_prng(small_size);
+    assert(random2.size() == small_size);
+
+    // Simple check that arrays differ
+    bool arrays_differ = false;
+    for (size_t i = 0; i < small_size; ++i) {
+        if (random1[i] != random2[i]) {
+            arrays_differ = true;
+            break;
+        }
+    }
+    assert(arrays_differ);
+
+    // Test zero-size case
+    ByteArray empty_random = ByteArray::create_from_prng(0);
+    assert(empty_random.size() == 0);
+
+    // Test medium size
+    ByteArray medium_random = ByteArray::create_from_prng(1024);
+    assert(medium_random.size() == 1024);
+
+    // Test exception for exceeding max size
+    bool exception_thrown = false;
+    try {
+        ByteArray too_large = ByteArray::create_from_prng(ByteArray::MAX_RANDOM_BYTES + 1);
+    } catch (const std::invalid_argument&) {
+        exception_thrown = true;
+    }
+    assert(exception_thrown);
+}
+
 // Main test function
 int main() {
     test_hex_string_constructor();
@@ -610,6 +816,10 @@ int main() {
     test_subscript_operator_bounds_checking();
     test_complement_operators();
     test_iterator_range_constructor();
+    test_concat();
+    test_concat_copy();
+    test_concat_and_create();
+    test_create_from_prng();
 
     std::cout << "All tests passed successfully!" << std::endl;
     return 0;

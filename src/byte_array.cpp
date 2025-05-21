@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <random>
 #include <stdexcept>
 
 using namespace jlizard;
@@ -126,6 +127,53 @@ ByteArray ByteArray::create_from_uint64(const uint64_t byte_array_long)
     ByteArrayOps::uint64_to_bytearray(byte_array_long,b.bytes_);
     return b;
 }
+
+ByteArray ByteArray::concat_and_create(const std::initializer_list<ByteArray>& arrays)
+{
+    ByteArray result;
+    for (const auto& array : arrays) {
+        result.bytes_.insert(result.bytes_.end(), array.bytes_.begin(), array.bytes_.end());
+    }
+    return result;
+
+}
+
+ByteArray& ByteArray::concat(const ByteArray& other)
+{
+    bytes_.insert(bytes_.end(), other.bytes_.begin(), other.bytes_.end());
+    return *this;
+}
+
+ByteArray ByteArray::concat_copy(const ByteArray& other) const
+{
+    ByteArray result(*this);
+    result.concat(other);
+
+    return result;
+}
+
+ByteArray ByteArray::create_from_prng(const size_t num_bytes)
+{
+
+    // Check if requested size exceeds the limit
+    if (num_bytes > MAX_RANDOM_BYTES) {
+        throw std::invalid_argument("Requested random bytes exceed maximum allowed size (1 MB)");
+    }
+
+    std::random_device rd;  // True random source
+    std::uniform_int_distribution<unsigned int> dist(0, 255);  // Range for a byte
+
+    std::vector<unsigned char> random_bytes(num_bytes);
+    for (size_t i = 0; i < num_bytes; ++i) {
+        random_bytes[i] = static_cast<unsigned char>(dist(rd));
+    }
+
+    return ByteArray(std::move(random_bytes));
+}
+
+
+
+
 
 
 
