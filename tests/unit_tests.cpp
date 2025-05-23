@@ -35,7 +35,7 @@
 using namespace jlizard;
 
 // Helper function to capture stderr output during tests
-std::string capture_stderr(std::function<void()> func) {
+std::string capture_stderr(const std::function<void()>& func) {
     std::stringstream buffer;
     std::streambuf* old_cerr = std::cerr.rdbuf(buffer.rdbuf());
 
@@ -566,15 +566,6 @@ void test_iterator_range_constructor() {
     assert(partial_range[1] == 0x33);
     assert(partial_range[2] == 0x44);
 
-    // Test with std::array
-    std::array<unsigned char, 3> arr{0xAA, 0xBB, 0xCC};
-    ByteArray from_array(arr.begin(), arr.end());
-
-    assert(from_array.size() == 3);
-    assert(from_array[0] == 0xAA);
-    assert(from_array[1] == 0xBB);
-    assert(from_array[2] == 0xCC);
-
     // Test with another ByteArray's iterators
     ByteArray original({0x01, 0x02, 0x03, 0x04, 0x05});
     ByteArray from_bytearray(original.begin() + 1, original.end() - 1);
@@ -588,23 +579,14 @@ void test_iterator_range_constructor() {
     ByteArray empty_range(vec.begin(), vec.begin());
     assert(empty_range.size() == 0);
 
-    // Test with C-style array
-    unsigned char c_array[] = {0xDD, 0xEE, 0xFF};
-    ByteArray from_c_array(std::begin(c_array), std::end(c_array));
-
-    assert(from_c_array.size() == 3);
-    assert(from_c_array[0] == 0xDD);
-    assert(from_c_array[1] == 0xEE);
-    assert(from_c_array[2] == 0xFF);
-
     // Test with string (as a sequence of bytes)
-    std::string str = "ABC";
-    ByteArray from_string(str.begin(), str.end());
+    ByteArray str_bytes = {'A','B','C'};
+    const ByteArray from_str_bytes(str_bytes.begin(), str_bytes.end());
 
-    assert(from_string.size() == 3);
-    assert(from_string[0] == 'A');
-    assert(from_string[1] == 'B');
-    assert(from_string[2] == 'C');
+    assert(from_str_bytes.size() == 3);
+    assert(from_str_bytes[0] == 'A');
+    assert(from_str_bytes[1] == 'B');
+    assert(from_str_bytes[2] == 'C');
 }
 
 // Test concat method
@@ -867,7 +849,6 @@ void test_partial_copy_constructor() {
 // Test growing the ByteArray
 void test_resize_growing() {
     ByteArray array = {0x01, 0x02, 0x03};
-    size_t original_size = array.size();
     size_t new_size = 5;
 
     array.resize(new_size);
@@ -1055,6 +1036,39 @@ void test_equality_operator() {
     std::cout << "All ByteArray equality tests passed!" << std::endl;
 }
 
+void test_iterator_constructor_disambiguation() {
+    std::cout << "Testing iterator constructor for ambiguity problems..." << std::endl;
+
+    // Test case 1: Fixed-size constructor with fill value
+    const ByteArray fixed_size(32, 0x42);
+
+    // Verify size is correct
+    assert(fixed_size.size() == 32);
+
+    // Verify all elements have the correct value
+    for (unsigned char i : fixed_size) {
+        assert(i == 0x42);
+    }
+
+    // Test case 2: Ensure this doesn't get confused with the iterator constructor
+    // Create a vector to test with
+    std::vector<unsigned char> test_vec(10, 0xFF);
+    const ByteArray from_vector(test_vec.begin(), test_vec.end());
+
+    // Verify the correct size and values
+    assert(from_vector.size() == 10);
+    for (unsigned char i : from_vector) {
+        assert(i == 0xFF);
+    }
+
+    // Test case 3: Make sure we can't accidentally pass integer iterators
+    // This should not compile:
+    // std::vector<int> int_vec = {1, 2, 3};
+    // ByteArray invalid(int_vec.begin(), int_vec.end());
+
+    std::cout << "  ✓ Constructor disambiguation tests passed" << std::endl;
+}
+
 
 
 // Main test function
@@ -1080,7 +1094,7 @@ int main() {
     test_partial_copy_constructor();
     test_resize_functionality();
     test_equality_operator();
-
+    test_iterator_constructor_disambiguation();
 
 
     std::cout << "All tests passed successfully!" << std::endl;

@@ -68,19 +68,21 @@ namespace jlizard
         explicit ByteArray(const std::vector<unsigned char>& byte_array): bytes_(byte_array) {};
         explicit ByteArray(std::vector<unsigned char>&& byte_array) noexcept : bytes_(std::move(byte_array)) {};
         explicit ByteArray(const size_t num_bytes, const unsigned char val) noexcept : bytes_(num_bytes,val) {};
-         /**
+        /**
          * @brief Constructs a ByteArray with contents from an iterator range.
          *
          * Creates a ByteArray with copies of elements in the range [first, last).
-         * This constructor allows creating a ByteArray from any container or range
-         * that provides compatible iterators.
+         * This constructor is restricted to only work with std::vector<unsigned char> iterators.
          *
-         * @tparam InputIt Input iterator type
+         * @tparam InputIt Iterator type, restricted to std::vector<unsigned char>::iterator or const_iterator
          * @param first Iterator to the beginning of the range
          * @param last Iterator to the end of the range
          */
         template <typename InputIt>
+        requires std::same_as<InputIt, std::vector<unsigned char>::iterator> ||
+                 std::same_as<InputIt, std::vector<unsigned char>::const_iterator>
         explicit ByteArray(InputIt first, InputIt last) : bytes_(first, last) {}
+
 
         /**
          * Creates a ByteArray containing a single byte.
