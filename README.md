@@ -289,6 +289,19 @@ void openssl_decryption_example() {
     sensitive_data.secure_wipe();
     sensitive_data2.secure_wipe();
     secret_data.secure_wipe();
+    
+    
+    // Equality comparison
+    ByteArray a = {0x01, 0x02, 0x03};
+    ByteArray b = {0x01, 0x02, 0x03};
+    ByteArray c = {0x01, 0x02, 0x04};
+    
+    bool are_equal = (a == b);       // true
+    bool are_different = (a == c);   // false
+    
+    // The equality operator first checks sizes then compares all elements
+    ByteArray shorter = {0x01, 0x02};
+    bool different_sizes = (a == shorter);  // false - different sizes
 }
 ```
 
@@ -393,7 +406,7 @@ This project is licensed under the MIT License—see the [LICENSE.md](LICENSE.md
 - Add additional bitwise operations (AND, OR, NAND, two's complement)
 - ✅ Add one's complement operation
 - Add bit manipulation operations (bit shifting, rotation, bit extraction, bit counting)
-- Add comparison operations (equality, less than, greater than)
+- ✅ Add comparison operations (equality, less than, greater than) (Partial: equality implemented)
 - Add endianness conversion utilities (big-endian to little-endian and vice versa)
 - ✅ Add array manipulation functions (concatenation, splitting, slicing) (Partial: concatenation implemented)
 - ✅ Add secure resize functionality with optional purging and warnings

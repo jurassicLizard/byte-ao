@@ -826,8 +826,6 @@ void test_partial_copy_constructor() {
         assert(partial[0] == 0x01);
         assert(partial[1] == 0x02);
         assert(partial[2] == 0x03);
-
-        std::cout << "Test partial copy (less than full size): PASSED" << std::endl;
     }
 
     // Test case 2: Try to copy more bytes than available
@@ -842,8 +840,6 @@ void test_partial_copy_constructor() {
         assert(partial[0] == 0xAA);
         assert(partial[1] == 0xBB);
         assert(partial[2] == 0xCC);
-
-        std::cout << "Test partial copy (more than available): PASSED" << std::endl;
     }
 
     // Test case 3: Empty source ByteArray
@@ -853,8 +849,6 @@ void test_partial_copy_constructor() {
 
         // Result should be empty
         assert(partial.size() == 0);
-
-        std::cout << "Test partial copy from empty array: PASSED" << std::endl;
     }
 
     // Test case 4: Zero bytes requested
@@ -864,8 +858,6 @@ void test_partial_copy_constructor() {
 
         // Result should be empty
         assert(partial.size() == 0);
-
-        std::cout << "Test partial copy with zero bytes: PASSED" << std::endl;
     }
 
     std::cout << "All partial copy constructor tests PASSED" << std::endl;
@@ -887,8 +879,6 @@ void test_resize_growing() {
     assert(array[0] == 0x01);
     assert(array[1] == 0x02);
     assert(array[2] == 0x03);
-
-    std::cout << "Test resize (growing): PASSED" << std::endl;
 }
 
 // Test shrinking with purge and warning enabled
@@ -910,8 +900,6 @@ void test_resize_shrink_with_purge_and_warning() {
     assert(array[0] == 0x01);
     assert(array[1] == 0x02);
     assert(array[2] == 0x03);
-
-    std::cout << "Test resize (shrinking with purge and warning): PASSED" << std::endl;
 }
 
 // Test shrinking without purge
@@ -932,8 +920,6 @@ void test_resize_shrink_without_purge() {
     // Verify content is preserved for the kept portion
     assert(array[0] == 0x01);
     assert(array[1] == 0x02);
-
-    std::cout << "Test resize (shrinking without purge): PASSED" << std::endl;
 }
 
 // Test shrinking without warning
@@ -956,8 +942,6 @@ void test_resize_shrink_without_warning() {
     assert(array[1] == 0x02);
     assert(array[2] == 0x03);
     assert(array[3] == 0x04);
-
-    std::cout << "Test resize (shrinking without warning): PASSED" << std::endl;
 }
 
 // Test resize to same size (no change)
@@ -979,8 +963,6 @@ void test_resize_same_size() {
     assert(array[0] == 0x01);
     assert(array[1] == 0x02);
     assert(array[2] == 0x03);
-
-    std::cout << "Test resize (same size): PASSED" << std::endl;
 }
 
 // Test resize to zero
@@ -1007,6 +989,73 @@ void test_resize_functionality() {
     std::cout << "All resize tests PASSED" << std::endl;
 }
 
+void test_equality_empty_arrays() {
+    const ByteArray a;
+    const ByteArray b;
+    assert(a == b);
+}
+
+void test_equality_identical_content() {
+    const ByteArray a{1, 2, 3, 4, 5};
+    const ByteArray b{1, 2, 3, 4, 5};
+    assert(a == b);
+}
+
+void test_equality_different_sizes() {
+    const ByteArray a{1, 2, 3};
+    const ByteArray b{1, 2, 3, 4};
+    assert(a != b);
+}
+
+void test_equality_same_size_different_content() {
+    const ByteArray a{1, 2, 3};
+    const ByteArray b{1, 2, 4};
+    assert(a != b);
+}
+
+void test_equality_different_first_element() {
+    const ByteArray a{9, 2, 3};
+    const ByteArray b{1, 2, 3};
+    assert(a != b);
+}
+
+void test_equality_different_last_element() {
+    const ByteArray a{1, 2, 3};
+    const ByteArray b{1, 2, 9};
+    assert(a != b);
+}
+
+void test_equality_self_comparison() {
+    const ByteArray a{1, 2, 3};
+    assert(a == a);
+}
+
+void test_equality_large_arrays() {
+    const ByteArray a(1000, 0x55);  // 1000 bytes filled with 0x55
+    ByteArray b(1000, 0x55);
+    assert(a == b);
+
+    // Change one byte in the middle
+    b.at(500) = 0xAA;
+    assert(a != b);
+}
+
+void test_equality_operator() {
+    std::cout << "Testing ByteArray equality operator..." << std::endl;
+
+    test_equality_empty_arrays();
+    test_equality_identical_content();
+    test_equality_different_sizes();
+    test_equality_same_size_different_content();
+    test_equality_different_first_element();
+    test_equality_different_last_element();
+    test_equality_self_comparison();
+    test_equality_large_arrays();
+
+    std::cout << "All ByteArray equality tests passed!" << std::endl;
+}
+
+
 
 // Main test function
 int main() {
@@ -1030,6 +1079,7 @@ int main() {
     test_create_from_prng();
     test_partial_copy_constructor();
     test_resize_functionality();
+    test_equality_operator();
 
 
 

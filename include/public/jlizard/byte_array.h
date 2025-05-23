@@ -141,6 +141,9 @@ namespace jlizard
         // 1's complement operator (unary ~)
         ByteArray operator~() const;
 
+        // Comparison operator
+        bool operator==(const ByteArray& other) const;
+
         // Logical operation end
 
         // accessor methods

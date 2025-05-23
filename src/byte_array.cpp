@@ -111,6 +111,14 @@ ByteArray ByteArray::operator~() const {
     return result;
 }
 
+bool ByteArray::operator==(const ByteArray& other) const
+{
+    if (size() != other.size()) return false;
+
+    return std::ranges::equal(*this,other);
+}
+
+
 uint64_t ByteArray::as_64bit_uint() const
 {
     if (bytes_.size() > 8)
