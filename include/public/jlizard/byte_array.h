@@ -58,6 +58,7 @@ namespace jlizard
         // Destructor - likely trivial since std::vector handles cleanup
         ~ByteArray() = default;
         ByteArray(const ByteArray& other) = default;
+        ByteArray(const ByteArray& other,const size_t num_bytes) : bytes_(other.begin(), other.begin()+ std::min(other.size(),num_bytes)) {};
         ByteArray& operator=(const ByteArray& other) = default;
         ByteArray(ByteArray&& other) noexcept : bytes_(std::move(other.bytes_)) {}
         ByteArray& operator=(ByteArray&& other) noexcept;
@@ -146,16 +147,19 @@ namespace jlizard
         // FIXME warn about the fact that downgrading the data size might leave data remnance
         [[nodiscard]] unsigned char* data() noexcept { return bytes_.data(); }
         [[nodiscard]] size_t size() const noexcept { return bytes_.size(); }
-        [[nodiscard]] auto begin() const noexcept { return bytes_.begin(); }
-        [[nodiscard]] auto end() const noexcept { return bytes_.end(); }
+        [[nodiscard]] std::vector<unsigned char>::const_iterator begin() const noexcept { return bytes_.begin(); }
+        [[nodiscard]] std::vector<unsigned char>::const_iterator end() const noexcept { return bytes_.end(); }
 
         /**
          * @brief Resize utility that calls the resize function on the underlying vector.
          * This has the same behavior and caveats as the std::vector resize() utility.
          * FIXME needs secure_wipe handling
          * @param new_size The new size to resize the ByteArray to
+         * @param purge_before_resize if we shrink or resize the array purge the old one first for security reasons
+         * @param output_warning outputs a warning to `std::cerr` if we are shrinking the array
          */
-         void resize(size_t new_size) { bytes_.resize(new_size); };
+         void resize(const size_t new_size, bool purge_before_resize = true, bool output_warning = true);
+
 
 
 

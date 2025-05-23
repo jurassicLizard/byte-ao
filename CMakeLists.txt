@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(byte-ao VERSION 0.0.4)
+project(byte-ao)
 
 set(BYTEAO_PROJECT_NAME byte-ao)
 set(CMAKE_CXX_STANDARD 20)

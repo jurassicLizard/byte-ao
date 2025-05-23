@@ -3,6 +3,19 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
 ![GitHub Issues](https://img.shields.io/github/issues/jurassicLizard/byte-ao)
 
+> ⚠️ **IMPORTANT NOTICE**: This code is provided for educational purposes only.
+> Cryptographic implementations require precise implementation details
+> and must undergo thorough security audits before deployment in production environments.
+> This library has not been formally audited. Use at your own risk.
+
+
+> ⚠️ **MEMORY SECURITY NOTE**: 
+> While ByteArray provides a secure_erase method for purging data from memory, no guarantees can be provided as to the reliable purging of sensitive data,
+> we recommend using more formally audited 
+> functions from libraries like OpenSSL for example the OpenSSL_cleanse() function which has undergone extensive security review
+> and provides more reliable and deterministic memory clearing.
+
+
 A high-level C++ abstraction for byte array operations designed while exploring cryptographic engineering concepts from Bruce Schneier, Ferguson and Kohno's "Cryptography Engineering" book.
 
 <!-- TOC -->
@@ -12,10 +25,17 @@ A high-level C++ abstraction for byte array operations designed while exploring 
   * [Example Usage](#example-usage)
     * [General Byte array operations](#general-byte-array-operations)
     * [Example use with OpenSSL (Optional)](#example-use-with-openssl-optional)
+    * [Other Examples](#other-examples)
   * [Building and Usage](#building-and-usage)
+    * [Option 1: Using add_subdirectory()](#option-1-using-add_subdirectory)
+    * [Option 2: Using FetchContent](#option-2-using-fetchcontent)
+    * [Standalone building (for testing or development):](#standalone-building-for-testing-or-development)
   * [Testing](#testing)
   * [Requirements](#requirements)
+  * [Important Implementation Notes](#important-implementation-notes)
+    * [Endianness Considerations](#endianness-considerations)
   * [Security Considerations](#security-considerations)
+  * [Changelog](#changelog)
   * [License](#license)
   * [WIPs and TODOs](#wips-and-todos)
 <!-- TOC -->
@@ -29,6 +49,7 @@ The Byte-Array Operations Library provides a clean, safe interface for working w
 - Secure memory wiping for sensitive data
 - Efficient bitwise operations with right-alignment semantics
 - Conversion between byte arrays and numeric types
+- Flexible resizing options with security considerations
 - RAII-compliant resource management
 - Protection against common memory handling errors
 
@@ -37,6 +58,7 @@ The Byte-Array Operations Library provides a clean, safe interface for working w
 - **Multiple Construction Methods**: Create byte arrays from hex strings, raw bytes, or numeric values
 - **Bitwise Operations**: XOR and complement operations with proper alignment semantics
 - **Secure Memory Handling**: Methods to securely erase sensitive data from memory
+- **Flexible Resizing**: Resize byte arrays with options for secure purging and warnings
 - **Modern C++ Design**: Uses move semantics, RAII principles, and C++17 features
 - **Conversion Utilities**: Easily convert between byte arrays and numeric types
 - **Comprehensive Test Suite**: Thoroughly tested core functionality
@@ -234,6 +256,39 @@ void openssl_decryption_example() {
     key.secure_wipe();
     iv.secure_wipe();
     plaintext.secure_wipe();
+    
+    
+    
+    // Enhanced resize operations with security options
+    ByteArray secure_data = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE};
+    
+    // Basic resize (grows the array)
+    secure_data.resize(8);  // Now contains {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x00, 0x00, 0x00}
+    
+    // Resize with secure wipe option (for sensitive data)
+    // This creates a new array with only the needed data, wipes the old array, then replaces it
+    ByteArray sensitive_data = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
+    sensitive_data.resize(4, true);  // Now contains {0x11, 0x22, 0x33, 0x44}, and remaining data was securely wiped
+    
+    // Resize with warning when shrinking (useful for security-conscious applications)
+    ByteArray sensitive_data2 = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE};
+    // This will print a warning to stderr when shrinking:
+    // "SECURITY WARNING: attempting to shrink a byte array buffer this could lead to data remnance"
+    sensitive_data2.resize(3, true, true);  // Now contains {0xAA, 0xBB, 0xCC}
+    
+    // Full control of resize behavior
+    ByteArray data = {0x01, 0x02, 0x03, 0x04, 0x05};
+    // Quietly shrink without warning and without secure wipe
+    data.resize(2, false, false);  // Now contains {0x01, 0x02}
+    
+    // Silently shrink with secure wipe but no warning
+    ByteArray secret_data = {0x01, 0x02, 0x03, 0x04, 0x05};
+    secret_data.resize(2, true, false);  // Now contains {0x01, 0x02} and remaining data was securely wiped
+    
+    // When done with sensitive data, always wipe it
+    sensitive_data.secure_wipe();
+    sensitive_data2.secure_wipe();
+    secret_data.secure_wipe();
 }
 ```
 
@@ -341,6 +396,7 @@ This project is licensed under the MIT License—see the [LICENSE.md](LICENSE.md
 - Add comparison operations (equality, less than, greater than)
 - Add endianness conversion utilities (big-endian to little-endian and vice versa)
 - ✅ Add array manipulation functions (concatenation, splitting, slicing) (Partial: concatenation implemented)
+- ✅ Add secure resize functionality with optional purging and warnings
 - Add search and pattern matching capabilities
 - Add serialization/deserialization support
 - Add encoding/decoding utilities (Base64, hex)

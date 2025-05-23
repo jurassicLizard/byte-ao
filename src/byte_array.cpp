@@ -172,6 +172,23 @@ ByteArray ByteArray::create_from_prng(const size_t num_bytes)
 }
 
 
+void ByteArray::resize(const size_t new_size,const bool purge_before_resize,const bool output_warning)
+{
+
+    // if we are shrinking then we need to secure wipe the old byte array to avoid data remnance
+    if (purge_before_resize && output_warning && (new_size < size())) std::cerr << "SECURITY WARNING : attempting to shrink a byte array buffer this could lead to data remnance" << std::endl;
+
+    if (purge_before_resize)
+    {
+        ByteArray temp(*this,new_size);
+        secure_wipe();
+        *this = temp;
+    }else
+    {
+        bytes_.resize(new_size);
+    }
+
+}
 
 
 

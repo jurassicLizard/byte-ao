@@ -28,9 +28,22 @@
 
 #include "jlizard/byte_array.h"
 #include <cassert>
+#include <functional>
+#include <sstream>
 #include <iostream>
 
 using namespace jlizard;
+
+// Helper function to capture stderr output during tests
+std::string capture_stderr(std::function<void()> func) {
+    std::stringstream buffer;
+    std::streambuf* old_cerr = std::cerr.rdbuf(buffer.rdbuf());
+
+    func();
+
+    std::cerr.rdbuf(old_cerr);
+    return buffer.str();
+}
 
 // Test hex string constructor
 void test_hex_string_constructor() {
@@ -800,6 +813,201 @@ void test_create_from_prng() {
     assert(exception_thrown);
 }
 
+void test_partial_copy_constructor() {
+    // Test case 1: Copy less bytes than available
+    {
+        ByteArray original = {0x01, 0x02, 0x03, 0x04, 0x05};
+        ByteArray partial(original, 3);
+
+        // Check correct size
+        assert(partial.size() == 3);
+
+        // Check correct content
+        assert(partial[0] == 0x01);
+        assert(partial[1] == 0x02);
+        assert(partial[2] == 0x03);
+
+        std::cout << "Test partial copy (less than full size): PASSED" << std::endl;
+    }
+
+    // Test case 2: Try to copy more bytes than available
+    {
+        ByteArray original = {0xAA, 0xBB, 0xCC};
+        ByteArray partial(original, 10); // Request more bytes than exist
+
+        // Should only copy what's available
+        assert(partial.size() == 3);
+
+        // Check content matches original
+        assert(partial[0] == 0xAA);
+        assert(partial[1] == 0xBB);
+        assert(partial[2] == 0xCC);
+
+        std::cout << "Test partial copy (more than available): PASSED" << std::endl;
+    }
+
+    // Test case 3: Empty source ByteArray
+    {
+        ByteArray empty;
+        ByteArray partial(empty, 5);
+
+        // Result should be empty
+        assert(partial.size() == 0);
+
+        std::cout << "Test partial copy from empty array: PASSED" << std::endl;
+    }
+
+    // Test case 4: Zero bytes requested
+    {
+        ByteArray original = {0x01, 0x02, 0x03, 0x04, 0x05};
+        ByteArray partial(original, 0);
+
+        // Result should be empty
+        assert(partial.size() == 0);
+
+        std::cout << "Test partial copy with zero bytes: PASSED" << std::endl;
+    }
+
+    std::cout << "All partial copy constructor tests PASSED" << std::endl;
+}
+
+
+// Test growing the ByteArray
+void test_resize_growing() {
+    ByteArray array = {0x01, 0x02, 0x03};
+    size_t original_size = array.size();
+    size_t new_size = 5;
+
+    array.resize(new_size);
+
+    // Check new size is correct, because of std::min this should be 3
+    assert(array.size() == 3);
+
+    // Verify original content is preserved
+    assert(array[0] == 0x01);
+    assert(array[1] == 0x02);
+    assert(array[2] == 0x03);
+
+    std::cout << "Test resize (growing): PASSED" << std::endl;
+}
+
+// Test shrinking with purge and warning enabled
+void test_resize_shrink_with_purge_and_warning() {
+    ByteArray array = {0x01, 0x02, 0x03, 0x04, 0x05};
+    size_t new_size = 3;
+
+    std::string stderr_output = capture_stderr([&]() {
+        array.resize(new_size, true, true); // With purge and warning
+    });
+
+    // Check if warning was output
+    assert(stderr_output.find("SECURITY WARNING") != std::string::npos);
+
+    // Check new size is correct
+    assert(array.size() == new_size);
+
+    // Verify content is preserved for the kept portion
+    assert(array[0] == 0x01);
+    assert(array[1] == 0x02);
+    assert(array[2] == 0x03);
+
+    std::cout << "Test resize (shrinking with purge and warning): PASSED" << std::endl;
+}
+
+// Test shrinking without purge
+void test_resize_shrink_without_purge() {
+    ByteArray array = {0x01, 0x02, 0x03, 0x04, 0x05};
+    size_t new_size = 2;
+
+    std::string stderr_output = capture_stderr([&]() {
+        array.resize(new_size, false, true); // No purge, with warning
+    });
+
+    // Check that warning is not output , we only output the warning when a purge is enabled
+    assert(stderr_output.find("SECURITY WARNING") == std::string::npos);
+
+    // Check new size is correct
+    assert(array.size() == new_size);
+
+    // Verify content is preserved for the kept portion
+    assert(array[0] == 0x01);
+    assert(array[1] == 0x02);
+
+    std::cout << "Test resize (shrinking without purge): PASSED" << std::endl;
+}
+
+// Test shrinking without warning
+void test_resize_shrink_without_warning() {
+    ByteArray array = {0x01, 0x02, 0x03, 0x04, 0x05};
+    size_t new_size = 4;
+
+    std::string stderr_output = capture_stderr([&]() {
+        array.resize(new_size, true, false); // With purge, no warning
+    });
+
+    // Check if no warning was output
+    assert(stderr_output.find("SECURITY WARNING") == std::string::npos);
+
+    // Check new size is correct
+    assert(array.size() == new_size);
+
+    // Verify content is preserved for the kept portion
+    assert(array[0] == 0x01);
+    assert(array[1] == 0x02);
+    assert(array[2] == 0x03);
+    assert(array[3] == 0x04);
+
+    std::cout << "Test resize (shrinking without warning): PASSED" << std::endl;
+}
+
+// Test resize to same size (no change)
+void test_resize_same_size() {
+    ByteArray array = {0x01, 0x02, 0x03};
+    size_t original_size = array.size();
+
+    std::string stderr_output = capture_stderr([&]() {
+        array.resize(original_size);
+    });
+
+    // Check no warning was output (since we're not shrinking)
+    assert(stderr_output.find("SECURITY WARNING") == std::string::npos);
+
+    // Check size is unchanged
+    assert(array.size() == original_size);
+
+    // Verify content is preserved
+    assert(array[0] == 0x01);
+    assert(array[1] == 0x02);
+    assert(array[2] == 0x03);
+
+    std::cout << "Test resize (same size): PASSED" << std::endl;
+}
+
+// Test resize to zero
+void test_resize_to_zero() {
+    ByteArray array = {0x01, 0x02, 0x03};
+
+    array.resize(0);
+
+    // Check new size is correct
+    assert(array.size() == 0);
+
+    std::cout << "Test resize (to zero): PASSED" << std::endl;
+}
+
+// Main resize test runner
+void test_resize_functionality() {
+    test_resize_growing();
+    test_resize_shrink_with_purge_and_warning();
+    test_resize_shrink_without_purge();
+    test_resize_shrink_without_warning();
+    test_resize_same_size();
+    test_resize_to_zero();
+
+    std::cout << "All resize tests PASSED" << std::endl;
+}
+
+
 // Main test function
 int main() {
     test_hex_string_constructor();
@@ -820,6 +1028,10 @@ int main() {
     test_concat_copy();
     test_concat_and_create();
     test_create_from_prng();
+    test_partial_copy_constructor();
+    test_resize_functionality();
+
+
 
     std::cout << "All tests passed successfully!" << std::endl;
     return 0;
