@@ -152,6 +152,7 @@ namespace jlizard
         // FIXME warn about the fact that downgrading the data size might leave data remnance
         [[nodiscard]] unsigned char* data() noexcept { return bytes_.data(); }
         [[nodiscard]] size_t size() const noexcept { return bytes_.size(); }
+        [[nodiscard]] bool empty() const noexcept {return bytes_.empty();}
         [[nodiscard]] std::vector<unsigned char>::const_iterator begin() const noexcept { return bytes_.begin(); }
         [[nodiscard]] std::vector<unsigned char>::const_iterator end() const noexcept { return bytes_.end(); }
 

@@ -1066,7 +1066,32 @@ void test_iterator_constructor_disambiguation() {
     // std::vector<int> int_vec = {1, 2, 3};
     // ByteArray invalid(int_vec.begin(), int_vec.end());
 
-    std::cout << "  ✓ Constructor disambiguation tests passed" << std::endl;
+    std::cout << "Constructor disambiguation tests passed" << std::endl;
+}
+
+void test_empty() {
+    // Test with default constructor - should be empty
+    const ByteArray empty_array;
+    assert(empty_array.empty());
+
+    // Test with non-empty array
+    const ByteArray non_empty_array{0x01, 0x02, 0x03};
+    assert(!non_empty_array.empty());
+
+    // Test after clearing a non-empty array
+    ByteArray cleared_array{0xFF};
+    assert(!cleared_array.empty());
+    cleared_array.clear();
+    assert(cleared_array.empty());
+
+    // Test with size constructor
+    const ByteArray zero_sized(0, 0x00);
+    assert(zero_sized.empty());
+
+    const ByteArray sized_array(5, 0x00);
+    assert(!sized_array.empty());
+
+    std::cout << "test_empty passed!" << std::endl;
 }
 
 

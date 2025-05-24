@@ -6,8 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- TODO : add secure wiping to clear function of ByteArray
+
 ### Added
 - Added an Equality comparison overload to ByteArray
+- add empty() member function to ByteArray
 
 ### Fixed
 - Added template restrictions for iterator constructor to avoid ambiguity between constructors
