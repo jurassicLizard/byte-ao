@@ -3,11 +3,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
 ![GitHub Issues](https://img.shields.io/github/issues/jurassicLizard/byte-ao)
 
-> ⚠️ **IMPORTANT NOTICE**: This code is provided for educational purposes only.
-> Cryptographic implementations require precise implementation details
-> and must undergo thorough security audits before deployment in production environments.
-> This library has not been formally audited. Use at your own risk.
-
 
 > ⚠️ **MEMORY SECURITY NOTE**: 
 > While ByteArray provides a secure_erase method for purging data from memory, no guarantees can be provided as to the reliable purging of sensitive data,
