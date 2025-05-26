@@ -28,6 +28,7 @@
 #include "jlizard/byte_array_ops.h"
 
 #include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <random>
 #include <stdexcept>
@@ -135,6 +136,21 @@ ByteArray ByteArray::create_from_uint64(const uint64_t byte_array_long)
     ByteArrayOps::uint64_to_bytearray(byte_array_long,b.bytes_);
     return b;
 }
+
+ByteArray ByteArray::create_from_string(std::string_view sv)
+{
+    // Pre-allocate the vector with the exact size needed
+    ByteArray result(sv.size(),0x00);
+
+    // Copy all bytes at once (single memcpy operation)
+    if (!sv.empty()) {
+        std::memcpy(result.data(), sv.data(), sv.size());
+    }
+
+
+    return result;
+}
+
 
 ByteArray ByteArray::concat_and_create(const std::initializer_list<ByteArray>& arrays)
 {

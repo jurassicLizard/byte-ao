@@ -1094,6 +1094,82 @@ void test_empty() {
     std::cout << "test_empty passed!" << std::endl;
 }
 
+void test_create_from_string_empty() {
+    const std::string_view empty_sv;
+    const ByteArray empty_result = ByteArray::create_from_string(empty_sv);
+    assert(empty_result.empty());
+    assert(empty_result.empty());
+
+    std::cout << "test_create_from_string_empty passed!" << std::endl;
+}
+
+void test_create_from_string_ascii() {
+    constexpr std::string_view ascii_sv = "Hello, World!";
+    const ByteArray ascii_result = ByteArray::create_from_string(ascii_sv);
+
+    assert(ascii_result.size() == ascii_sv.size());
+    for (size_t i = 0; i < ascii_sv.size(); ++i) {
+        assert(ascii_result[i] == static_cast<unsigned char>(ascii_sv[i]));
+    }
+
+    std::cout << "test_create_from_string_ascii passed!" << std::endl;
+}
+
+void test_create_from_string_special_chars() {
+    // Create a string view with embedded null characters and non-ASCII chars
+    constexpr char raw_data[] = "Test\0With\0Nulls\xFE\xFF";
+    const std::string_view special_sv(raw_data, sizeof(raw_data) - 1); // -1 to exclude trailing null
+
+    const ByteArray special_result = ByteArray::create_from_string(special_sv);
+
+    assert(special_result.size() == special_sv.size());
+    for (size_t i = 0; i < special_sv.size(); ++i) {
+        assert(special_result[i] == static_cast<unsigned char>(special_sv[i]));
+    }
+
+    std::cout << "test_create_from_string_special_chars passed!" << std::endl;
+}
+
+void test_create_from_string_large() {
+    // Create a 10KB string
+    const std::string large_string(10240, 'A');
+    const std::string_view large_sv = large_string;
+
+    const ByteArray large_result = ByteArray::create_from_string(large_sv);
+
+    assert(large_result.size() == large_sv.size());
+    // Check a few elements to verify correctness
+    assert(large_result[0] == 'A');
+    assert(large_result[1000] == 'A');
+    assert(large_result[large_sv.size() - 1] == 'A');
+
+    std::cout << "test_create_from_string_large passed!" << std::endl;
+}
+
+void test_create_from_string_independence() {
+    std::string mutable_str = "Original";
+    const ByteArray result = ByteArray::create_from_string(mutable_str);
+
+    // Modify the original string
+    mutable_str[0] = 'M';
+
+    // The ByteArray should still have the original data
+    assert(result[0] == 'O');
+
+    std::cout << "test_create_from_string_independence passed!" << std::endl;
+}
+
+// You can call these functions individually from main or add a wrapper function:
+void test_create_from_string_all() {
+    test_create_from_string_empty();
+    test_create_from_string_ascii();
+    test_create_from_string_special_chars();
+    test_create_from_string_large();
+    test_create_from_string_independence();
+
+    std::cout << "All create_from_string tests passed!" << std::endl;
+}
+
 
 
 // Main test function

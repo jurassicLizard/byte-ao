@@ -100,7 +100,7 @@ namespace jlizard
          * @brief Construct a ByteArray from an initializer list of bytes
          * @param bytes The initializer list of unsigned char values
          */
-        ByteArray(std::initializer_list<unsigned char> bytes) : bytes_(bytes) {};
+        ByteArray(const std::initializer_list<unsigned char> bytes) : bytes_(bytes) {};
 
         /**
          *
@@ -120,7 +120,7 @@ namespace jlizard
          * @param other The byte array to append to a copy of this array
          * @return New ByteArray containing this array's data followed by other's data
          */
-        ByteArray concat_copy(const ByteArray& other) const;
+        [[nodiscard]] ByteArray concat_copy(const ByteArray& other) const;
 
 
 
@@ -196,7 +196,20 @@ namespace jlizard
          * @return A new ByteArray containing all input arrays concatenated in sequence
          */
         static ByteArray concat_and_create(const std::initializer_list<ByteArray>& arrays);
-
+        /**
+         * @brief Creates a ByteArray from a string_view using list initialization
+         *
+         * Converts a string_view into a ByteArray using list initialization syntax.
+         * This allows for efficient creation of ByteArrays from string literals or
+         * stack-allocated strings without creating temporary std::string objects.
+         *
+         * @param sv The string_view to convert to a ByteArray
+         * @return A newly constructed ByteArray containing the data
+         *
+         * @note This avoids extra copies of the string data
+         * @note Example usage: jlizard::ByteArray data = to_byte_array("Hello World");
+         */
+        static ByteArray create_from_string(std::string_view sv);
         static ByteArray create_from_prng(const size_t num_bytes);
         /**
          * @brief Access the byte at the specified index with bounds checking
