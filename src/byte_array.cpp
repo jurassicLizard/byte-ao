@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <random>
 #include <stdexcept>
@@ -129,6 +130,16 @@ uint64_t ByteArray::as_64bit_uint() const
 
     return ByteArrayOps::bytearray_to_uint64(bytes_);
 }
+
+std::string ByteArray::as_hex_string() const {
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0');
+    for (const auto byte : *this) {
+        ss << std::setw(2) << static_cast<int>(byte);
+    }
+    return ss.str();
+}
+
 
 ByteArray ByteArray::create_from_uint64(const uint64_t byte_array_long)
 {

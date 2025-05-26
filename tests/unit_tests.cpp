@@ -1170,6 +1170,58 @@ void test_create_from_string_all() {
     std::cout << "All create_from_string tests passed!" << std::endl;
 }
 
+#include <cassert>
+#include <iostream>
+
+// Test for empty ByteArray
+void test_as_hex_string_empty() {
+    ByteArray empty;
+    std::string result = empty.as_hex_string();
+    assert(result.empty());
+    std::cout << __func__ << " passed!" << std::endl;
+}
+
+// Test for ByteArray with zero values
+void test_as_hex_string_zeros() {
+    ByteArray zeros(3, 0);
+    const std::string result = zeros.as_hex_string();
+    assert(result == "000000");
+    std::cout << __func__ << " passed!" << std::endl;
+}
+
+// Test for ByteArray with values requiring padding
+void test_as_hex_string_padding() {
+    const ByteArray data = {0x01, 0x0A, 0x0F};
+    const std::string result = data.as_hex_string();
+    assert(result == "010a0f");
+    std::cout << __func__ << " passed!" << std::endl;
+}
+
+// Test for ByteArray with a mix of values
+void test_as_hex_string_mixed() {
+    const ByteArray mixed = {0x00, 0x7F, 0xFF, 0xAB, 0xCD};
+    const std::string result = mixed.as_hex_string();
+    assert(result == "007fffabcd");
+    std::cout << __func__ << " passed!" << std::endl;
+}
+
+// Test for ByteArray created from string
+void test_as_hex_string_from_string() {
+    const ByteArray text = jlizard::ByteArray::create_from_string("ABC123");
+    const std::string result = text.as_hex_string();
+    assert(result == "414243313233"); // Hex for "ABC123"
+    std::cout << __func__ << " passed!" << std::endl;
+}
+
+// Run all tests for as_hex_string
+void test_as_hex_string_all() {
+    test_as_hex_string_empty();
+    test_as_hex_string_zeros();
+    test_as_hex_string_padding();
+    test_as_hex_string_mixed();
+    test_as_hex_string_from_string();
+    std::cout << __func__ << " passed!" << std::endl;
+}
 
 
 // Main test function
@@ -1196,6 +1248,8 @@ int main() {
     test_resize_functionality();
     test_equality_operator();
     test_iterator_constructor_disambiguation();
+    test_create_from_string_all();
+    test_as_hex_string_all();
 
 
     std::cout << "All tests passed successfully!" << std::endl;

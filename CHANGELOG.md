@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added an Equality comparison overload to ByteArray
 - added empty() member function to ByteArray
 - added create_from_string(std::string_view) factory function
+- Added as_hex_string utility for displaying the byte array as a hex string
+
 
 ### Fixed
 - Added template restrictions for iterator constructor to avoid ambiguity between constructors

@@ -184,6 +184,20 @@ namespace jlizard
         // FIXME needs documentation
         [[nodiscard]] uint64_t as_64bit_uint() const;
         /**
+         * @brief Converts the ByteArray content to a hexadecimal string representation
+         *
+         * Each byte is converted to a two-character hexadecimal representation
+         * with leading zeros preserved (e.g., 0x0A becomes "0a").
+         *
+         * @return std::string The hexadecimal string representation of the ByteArray
+         *
+         * @example
+         * ByteArray data = {0x01, 0xAB, 0xCD};
+         * std::string hex = data.as_hex_string(); // Returns "01abcd"
+         */
+        [[nodiscard]] std::string as_hex_string() const;
+
+        /**
          * Creates a new ByteArray from a 64-bit unsigned integer
          * @param byte_array_long The 64-bit value to convert to a ByteArray
          * @return A new ByteArray containing the byte representation of the input value
