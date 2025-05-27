@@ -193,6 +193,50 @@ void example() {
     } catch (const std::invalid_argument& e) {
         // Handle exception
     }
+    
+    // Enhanced resize operations with security options
+    ByteArray secure_data = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE};
+    
+    // Basic resize (grows the array)
+    secure_data.resize(8);  // Now contains {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x00, 0x00, 0x00}
+    
+    // Resize with secure wipe option (for sensitive data)
+    // This creates a new array with only the needed data, wipes the old array, then replaces it
+    ByteArray sensitive_data = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
+    sensitive_data.resize(4, true);  // Now contains {0x11, 0x22, 0x33, 0x44}, and remaining data was securely wiped
+    
+    // Resize with warning when shrinking (useful for security-conscious applications)
+    ByteArray sensitive_data2 = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE};
+    // This will print a warning to stderr when shrinking:
+    // "SECURITY WARNING: attempting to shrink a byte array buffer this could lead to data remnance"
+    sensitive_data2.resize(3, true, true);  // Now contains {0xAA, 0xBB, 0xCC}
+    
+    // Full control of resize behavior
+    ByteArray data = {0x01, 0x02, 0x03, 0x04, 0x05};
+    // Quietly shrink without warning and without secure wipe
+    data.resize(2, false, false);  // Now contains {0x01, 0x02}
+    
+    // Silently shrink with secure wipe but no warning
+    ByteArray secret_data = {0x01, 0x02, 0x03, 0x04, 0x05};
+    secret_data.resize(2, true, false);  // Now contains {0x01, 0x02} and remaining data was securely wiped
+    
+    // When done with sensitive data, always wipe it
+    sensitive_data.secure_wipe();
+    sensitive_data2.secure_wipe();
+    secret_data.secure_wipe();
+    
+    
+    // Equality comparison
+    ByteArray a = {0x01, 0x02, 0x03};
+    ByteArray b = {0x01, 0x02, 0x03};
+    ByteArray c = {0x01, 0x02, 0x04};
+    
+    bool are_equal = (a == b);       // true
+    bool are_different = (a == c);   // false
+    
+    // The equality operator first checks sizes then compares all elements
+    ByteArray shorter = {0x01, 0x02};
+    bool different_sizes = (a == shorter);  // false - different sizes
 }
 ```
 
@@ -251,52 +295,6 @@ void openssl_decryption_example() {
     key.secure_wipe();
     iv.secure_wipe();
     plaintext.secure_wipe();
-    
-    
-    
-    // Enhanced resize operations with security options
-    ByteArray secure_data = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE};
-    
-    // Basic resize (grows the array)
-    secure_data.resize(8);  // Now contains {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x00, 0x00, 0x00}
-    
-    // Resize with secure wipe option (for sensitive data)
-    // This creates a new array with only the needed data, wipes the old array, then replaces it
-    ByteArray sensitive_data = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
-    sensitive_data.resize(4, true);  // Now contains {0x11, 0x22, 0x33, 0x44}, and remaining data was securely wiped
-    
-    // Resize with warning when shrinking (useful for security-conscious applications)
-    ByteArray sensitive_data2 = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE};
-    // This will print a warning to stderr when shrinking:
-    // "SECURITY WARNING: attempting to shrink a byte array buffer this could lead to data remnance"
-    sensitive_data2.resize(3, true, true);  // Now contains {0xAA, 0xBB, 0xCC}
-    
-    // Full control of resize behavior
-    ByteArray data = {0x01, 0x02, 0x03, 0x04, 0x05};
-    // Quietly shrink without warning and without secure wipe
-    data.resize(2, false, false);  // Now contains {0x01, 0x02}
-    
-    // Silently shrink with secure wipe but no warning
-    ByteArray secret_data = {0x01, 0x02, 0x03, 0x04, 0x05};
-    secret_data.resize(2, true, false);  // Now contains {0x01, 0x02} and remaining data was securely wiped
-    
-    // When done with sensitive data, always wipe it
-    sensitive_data.secure_wipe();
-    sensitive_data2.secure_wipe();
-    secret_data.secure_wipe();
-    
-    
-    // Equality comparison
-    ByteArray a = {0x01, 0x02, 0x03};
-    ByteArray b = {0x01, 0x02, 0x03};
-    ByteArray c = {0x01, 0x02, 0x04};
-    
-    bool are_equal = (a == b);       // true
-    bool are_different = (a == c);   // false
-    
-    // The equality operator first checks sizes then compares all elements
-    ByteArray shorter = {0x01, 0x02};
-    bool different_sizes = (a == shorter);  // false - different sizes
 }
 ```
 
