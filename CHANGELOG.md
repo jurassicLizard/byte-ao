@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added empty() member function to ByteArray
 - added create_from_string(std::string_view) factory function
 - Added as_hex_string utility for displaying the byte array as a hex string
+- Added create_with_prealloc static constructor to preallocate space before creating the byte array
 
 
 ### Fixed
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated Readme.md with examples
 - Reorganized examples for better visibility
+- Removed `const char *` and replaced it with `std::string_view` in ByteArray hex constructor
 
 
 

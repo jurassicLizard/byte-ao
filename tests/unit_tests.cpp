@@ -34,6 +34,8 @@
 
 using namespace jlizard;
 
+#define PRINT_PASSED() do{ std::cout << __func__ << " passed!" << std::endl; }while(0)
+
 // Helper function to capture stderr output during tests
 std::string capture_stderr(const std::function<void()>& func) {
     std::stringstream buffer;
@@ -76,7 +78,7 @@ void test_vector_constructor() {
 
     std::vector<unsigned char> empty_vec;
     const ByteArray b2(empty_vec);
-    assert(b2.size() == 0);
+    assert(b2.empty());
 
     std::vector<unsigned char> move_vec{0x01, 0x02, 0x03};
     ByteArray b3(std::move(move_vec));
@@ -96,7 +98,7 @@ void test_initializer_list_constructor() {
     assert(b1[2] == 0xBA);
 
     const ByteArray b2({});
-    assert(b2.size() == 0);
+    assert(b2.empty());
 
     const ByteArray b3({0x42});
     assert(b3.size() == 1);
@@ -261,16 +263,16 @@ void test_secure_erase() {
     assert(wipe_result);
 
     // Verify size is now 0 (should be emptied by the secure_zero_vector operation)
-    assert(sensitive_data.size() == 0);
+    assert(sensitive_data.empty());
 
     // Test with an empty ByteArray
     ByteArray empty_data({});
-    assert(empty_data.size() == 0);
+    assert(empty_data.empty());
 
     // Wiping an empty array should succeed without issues
     wipe_result = empty_data.secure_wipe();
     assert(wipe_result);
-    assert(empty_data.size() == 0);
+    assert(empty_data.empty());
 
     // Test with single byte value
     ByteArray single_byte(static_cast<unsigned char>(0x42));
@@ -279,7 +281,7 @@ void test_secure_erase() {
 
     wipe_result = single_byte.secure_wipe();
     assert(wipe_result);
-    assert(single_byte.size() == 0);
+    assert(single_byte.empty());
 
     // Test with hex string constructed ByteArray
     ByteArray hex_constructed("deadbeef");
@@ -287,7 +289,7 @@ void test_secure_erase() {
 
     wipe_result = hex_constructed.secure_wipe();
     assert(wipe_result);
-    assert(hex_constructed.size() == 0);
+    assert(hex_constructed.empty());
 
     // Test post-wipe operations to ensure object remains usable
     // Create a new ByteArray, wipe it, then add new data
@@ -296,7 +298,7 @@ void test_secure_erase() {
 
     wipe_result = reusable.secure_wipe();
     assert(wipe_result);
-    assert(reusable.size() == 0);
+    assert(reusable.empty());
 
     // After wiping, the object should still be usable
     // We can't directly assign new data since there's no method for that,
@@ -420,7 +422,7 @@ void test_size_and_value_constructor() {
 
     // Test with zero size
     ByteArray b3(0, 0xFF);
-    assert(b3.size() == 0);
+    assert(b3.empty());
 
     // Test with large size
     constexpr size_t large_size = 1000;
@@ -521,9 +523,9 @@ void test_complement_operators() {
     assert(b3[2] == 0xAA); // ~0x55 = 0xAA
 
     // Test complement of empty ByteArray
-    ByteArray empty;
     bool exception_thrown = false;
     try {
+        ByteArray empty;
         ByteArray result = ~empty;
         (void)result; // Prevent unused variable warning
     } catch (const std::invalid_argument&) {
@@ -577,7 +579,7 @@ void test_iterator_range_constructor() {
 
     // Test with empty range
     ByteArray empty_range(vec.begin(), vec.begin());
-    assert(empty_range.size() == 0);
+    assert(empty_range.empty());
 
     // Test with string (as a sequence of bytes)
     ByteArray str_bytes = {'A','B','C'};
@@ -731,7 +733,7 @@ void test_concat_and_create() {
 
     // Test with all empty ByteArrays
     ByteArray all_empty = ByteArray::concat_and_create({empty, empty, empty});
-    assert(all_empty.size() == 0);
+    assert(all_empty.empty());
 
     // Test with single ByteArray
     ByteArray single = ByteArray::concat_and_create({b4});
@@ -741,7 +743,7 @@ void test_concat_and_create() {
 
     // Test with empty initializer list
     ByteArray no_arrays = ByteArray::concat_and_create({});
-    assert(no_arrays.size() == 0);
+    assert(no_arrays.empty());
 
     // Test that originals are unchanged
     assert(b1.size() == 2);
@@ -779,7 +781,7 @@ void test_create_from_prng() {
 
     // Test zero-size case
     ByteArray empty_random = ByteArray::create_from_prng(0);
-    assert(empty_random.size() == 0);
+    assert(empty_random.empty());
 
     // Test medium size
     ByteArray medium_random = ByteArray::create_from_prng(1024);
@@ -830,7 +832,7 @@ void test_partial_copy_constructor() {
         ByteArray partial(empty, 5);
 
         // Result should be empty
-        assert(partial.size() == 0);
+        assert(partial.empty());
     }
 
     // Test case 4: Zero bytes requested
@@ -839,7 +841,7 @@ void test_partial_copy_constructor() {
         ByteArray partial(original, 0);
 
         // Result should be empty
-        assert(partial.size() == 0);
+        assert(partial.empty());
     }
 
     std::cout << "All partial copy constructor tests PASSED" << std::endl;
@@ -953,7 +955,7 @@ void test_resize_to_zero() {
     array.resize(0);
 
     // Check new size is correct
-    assert(array.size() == 0);
+    assert(array.empty());
 
     std::cout << "Test resize (to zero): PASSED" << std::endl;
 }
@@ -1095,7 +1097,7 @@ void test_empty() {
 }
 
 void test_create_from_string_empty() {
-    const std::string_view empty_sv;
+    constexpr std::string_view empty_sv;
     const ByteArray empty_result = ByteArray::create_from_string(empty_sv);
     assert(empty_result.empty());
     assert(empty_result.empty());
@@ -1117,8 +1119,8 @@ void test_create_from_string_ascii() {
 
 void test_create_from_string_special_chars() {
     // Create a string view with embedded null characters and non-ASCII chars
-    constexpr char raw_data[] = "Test\0With\0Nulls\xFE\xFF";
-    const std::string_view special_sv(raw_data, sizeof(raw_data) - 1); // -1 to exclude trailing null
+    const char raw_data[] = "Test\0With\0Nulls\xFE\xFF"; // NOLINT
+    const std::string_view special_sv(raw_data, sizeof(raw_data) - 1); // -1 to exclude trailing null NOLINT
 
     const ByteArray special_result = ByteArray::create_from_string(special_sv);
 
@@ -1170,9 +1172,6 @@ void test_create_from_string_all() {
     std::cout << "All create_from_string tests passed!" << std::endl;
 }
 
-#include <cassert>
-#include <iostream>
-
 // Test for empty ByteArray
 void test_as_hex_string_empty() {
     ByteArray empty;
@@ -1223,6 +1222,85 @@ void test_as_hex_string_all() {
     std::cout << __func__ << " passed!" << std::endl;
 }
 
+void test_create_with_prealloc_preserves_capacity() {
+    // Test that capacity is preserved correctly
+    const size_t requested_capacity = 1000;
+    jlizard::ByteArray ba = jlizard::ByteArray::create_with_prealloc(requested_capacity);
+
+    // Check that the array starts empty
+    assert(ba.size() == 0);
+
+    // We can't directly check capacity since ByteArray doesn't expose it
+    // But we can verify it handles the requested capacity without reallocation
+
+    // Add data up to the requested capacity
+    for (size_t i = 0; i < requested_capacity; ++i) {
+        ba.concat(jlizard::ByteArray({static_cast<unsigned char>(i % 256)}));
+    }
+
+    // Verify all data was added correctly
+    assert(ba.size() == requested_capacity);
+    for (size_t i = 0; i < requested_capacity; ++i) {
+        assert(ba.at(i) == static_cast<unsigned char>(i % 256));
+    }
+
+    PRINT_PASSED();
+}
+
+void test_create_with_prealloc_zero_capacity() {
+    // Test with zero capacity
+    jlizard::ByteArray ba = jlizard::ByteArray::create_with_prealloc(0);
+    assert(ba.size() == 0);
+    assert(ba.empty());
+
+    PRINT_PASSED();
+}
+
+void test_create_with_prealloc_large_capacity() {
+    // Test with very large capacity
+    const size_t large_capacity = 10 * 1024 * 1024; // 10 MB
+    jlizard::ByteArray ba = jlizard::ByteArray::create_with_prealloc(large_capacity);
+    assert(ba.size() == 0);
+    assert(ba.empty());
+
+    // Add a small amount of data
+    ba.concat(jlizard::ByteArray({1, 2, 3, 4, 5}));
+    assert(ba.size() == 5);
+
+    PRINT_PASSED();
+}
+
+void test_create_with_prealloc_functionality() {
+    // Test that we can use the preallocated ByteArray normally
+    jlizard::ByteArray ba = jlizard::ByteArray::create_with_prealloc(100);
+
+    // Add data
+    ba.concat(jlizard::ByteArray({10, 20, 30}));
+
+    // Check XOR operations
+    jlizard::ByteArray xor_result = ba ^ jlizard::ByteArray({5, 5, 5});
+    assert(xor_result.at(0) == 15);  // 10 ^ 5 = 15
+    assert(xor_result.at(1) == 17);  // 20 ^ 5 = 17
+    assert(xor_result.at(2) == 27);  // 30 ^ 5 = 27
+
+    // Check clear
+    ba.clear();
+    assert(ba.size() == 0);
+    assert(ba.empty());
+
+    PRINT_PASSED();
+}
+
+void run_all_prealloc_tests() {
+    test_create_with_prealloc_preserves_capacity();
+    test_create_with_prealloc_zero_capacity();
+    test_create_with_prealloc_large_capacity();
+    test_create_with_prealloc_functionality();
+
+    // If we get here, all tests passed
+    printf("All create_with_prealloc tests passed!\n");
+}
+
 
 // Main test function
 int main() {
@@ -1250,6 +1328,7 @@ int main() {
     test_iterator_constructor_disambiguation();
     test_create_from_string_all();
     test_as_hex_string_all();
+    run_all_prealloc_tests();
 
 
     std::cout << "All tests passed successfully!" << std::endl;

@@ -64,7 +64,6 @@ namespace jlizard
         ByteArray& operator=(ByteArray&& other) noexcept;
 
         ByteArray() {bytes_.reserve(JLBA_DEFAULT_ALLOC_SIZE);};
-        explicit ByteArray(const std::string& hex_str);
         explicit ByteArray(const std::vector<unsigned char>& byte_array): bytes_(byte_array) {};
         explicit ByteArray(std::vector<unsigned char>&& byte_array) noexcept : bytes_(std::move(byte_array)) {};
         explicit ByteArray(const size_t num_bytes, const unsigned char val) noexcept : bytes_(num_bytes,val) {};
@@ -95,7 +94,7 @@ namespace jlizard
          * @param hex_str
          * @param do_secure_wipe
          */
-        explicit ByteArray(const char* hex_str) : ByteArray(std::string(hex_str)) {};
+        explicit ByteArray(const std::string_view hex_str);
         /**
          * @brief Construct a ByteArray from an initializer list of bytes
          * @param bytes The initializer list of unsigned char values
@@ -168,7 +167,6 @@ namespace jlizard
 
 
 
-
         /**
          * @brief Clears all elements from the ByteArray.
          *
@@ -224,7 +222,43 @@ namespace jlizard
          * @note Example usage: jlizard::ByteArray data = to_byte_array("Hello World");
          */
         static ByteArray create_from_string(std::string_view sv);
+        /**
+         * @brief Creates a new ByteArray filled with pseudo-random data
+         *
+         * Generates a ByteArray of the specified size containing pseudo-random bytes.
+         * This method uses a pseudo-random number generator to fill the array.
+         *
+         * @param num_bytes The number of random bytes to generate
+         * @return A new ByteArray filled with random data
+         * @throws std::invalid_argument If num_bytes exceeds MAX_RANDOM_BYTES (1 MB)
+         *
+         * @see MAX_RANDOM_BYTES For the maximum allowed size
+         *
+         * @note The quality of randomness depends on the underlying PRNG implementation
+         * @warning This method is NOT cryptographically secure. Do not use for
+         *          security-sensitive applications or cryptographic purposes.
+         *
+         * @example
+         * // Create a 32-byte random array
+         * ByteArray random_data = ByteArray::create_from_prng(32);
+         */
         static ByteArray create_from_prng(const size_t num_bytes);
+        /**
+         * @brief Creates a ByteArray with pre-allocated memory capacity
+         *
+         * Creates an empty ByteArray instance with memory already reserved for future use.
+         * This can improve performance when the approximate size is known in advance,
+         * avoiding multiple reallocations when adding data.
+         *
+         * @param reserve_size Number of bytes to pre-allocate
+         * @return ByteArray A new ByteArray instance with the requested capacity
+         *
+         * @note The ByteArray will still have a length of zero, but will have
+         * internal capacity to store at least reserve_size bytes without reallocation.
+         *
+         * @see ByteArray::reserve(size_t reserve_size)
+         */
+        static ByteArray create_with_prealloc(size_t reserve_size);
         /**
          * @brief Access the byte at the specified index with bounds checking
          *

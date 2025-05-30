@@ -36,7 +36,7 @@
 
 using namespace jlizard;
 
-ByteArray::ByteArray(const std::string& hex_str)
+ByteArray::ByteArray(const std::string_view hex_str)
 {
     bytes_.resize(hex_str.length() / 2 + hex_str.length() % 2);
 
@@ -140,6 +140,12 @@ std::string ByteArray::as_hex_string() const {
     return ss.str();
 }
 
+ByteArray ByteArray::create_with_prealloc(size_t reserve_size)
+{
+    std::vector<unsigned char> buf;
+    buf.reserve(reserve_size);
+    return ByteArray(std::move(buf));
+}
 
 ByteArray ByteArray::create_from_uint64(const uint64_t byte_array_long)
 {
