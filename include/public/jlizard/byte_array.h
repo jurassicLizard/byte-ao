@@ -58,7 +58,35 @@ namespace jlizard
         // Destructor - likely trivial since std::vector handles cleanup
         ~ByteArray() = default;
         ByteArray(const ByteArray& other) = default;
-        ByteArray(const ByteArray& other,const size_t num_bytes) : bytes_(other.begin(), other.begin()+ std::min(other.size(),num_bytes)) {};
+        /**
+         * @brief Constructs a ByteArray with a specified number of bytes from another ByteArray
+         *
+         * Creates a new ByteArray with a size of exactly `num_bytes`. If the source ByteArray
+         * (`other`) has fewer elements than `num_bytes`, the new ByteArray will be filled with:
+         * - All elements from `other` at the beginning
+         * - Default-initialized elements (0x00) for any remaining positions
+         *
+         * If `other` has more elements than `num_bytes`, only the first `num_bytes` elements
+         * are copied.
+         *
+         * @param other The source ByteArray to copy from
+         * @param num_bytes The exact size of the new ByteArray
+         *
+         * @note This constructor always creates a ByteArray of exactly `num_bytes` size,
+         *       regardless of the size of `other`
+         * @note Default-initialized values for unsigned char are 0x00
+         *
+         * @example
+         * // Create a ByteArray with 5 bytes
+         * ByteArray original = {0x01, 0x02, 0x03, 0x04, 0x05};
+         *
+         * // Create a ByteArray with 3 bytes (truncates original)
+         * ByteArray truncated(original, 3); // Contains {0x01, 0x02, 0x03}
+         *
+         * // Create a ByteArray with 8 bytes (extends with zeros)
+         * ByteArray extended(original, 8); // Contains {0x01, 0x02, 0x03, 0x04, 0x05, 0x00, 0x00, 0x00}
+         */
+        ByteArray(const ByteArray& other,const size_t num_bytes);
         ByteArray& operator=(const ByteArray& other) = default;
         ByteArray(ByteArray&& other) noexcept : bytes_(std::move(other.bytes_)) {}
         ByteArray& operator=(ByteArray&& other) noexcept;

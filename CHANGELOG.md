@@ -9,16 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - TODO : add secure wiping to clear function of ByteArray
 
+## [0.2.0] 2025-05-31
+
 ### Added
 - Added an Equality comparison overload to ByteArray
-- added empty() member function to ByteArray
-- added create_from_string(std::string_view) factory function
+- Added empty() member function to ByteArray
+- Added create_from_string(std::string_view) factory function
 - Added as_hex_string utility for displaying the byte array as a hex string
 - Added create_with_prealloc static constructor to preallocate space before creating the byte array
+- Added documentation to ByteArray(ByteArray& other, const size_t num_bytes)
 
 
 ### Fixed
 - Added template restrictions for iterator constructor to avoid ambiguity between constructors
+- Fixed Constructor ByteArray(ByteArray& other, const size_t num_bytes) not padding correctly
 
 ### Changed
 - Updated Readme.md with examples

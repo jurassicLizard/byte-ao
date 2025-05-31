@@ -31,6 +31,7 @@
 #include <functional>
 #include <sstream>
 #include <iostream>
+#include <pstl/execution_defs.h>
 
 using namespace jlizard;
 
@@ -815,24 +816,30 @@ void test_partial_copy_constructor() {
     // Test case 2: Try to copy more bytes than available
     {
         ByteArray original = {0xAA, 0xBB, 0xCC};
-        ByteArray partial(original, 10); // Request more bytes than exist
+        ByteArray copy(original, 6); // Request more bytes than exist
 
-        // Should only copy what's available
-        assert(partial.size() == 3);
+        // Should pad the rest with 0x00
+        assert(copy.size() == 6);
 
-        // Check content matches original
-        assert(partial[0] == 0xAA);
-        assert(partial[1] == 0xBB);
-        assert(partial[2] == 0xCC);
+        // Check content matches original and pads
+        assert(copy[0] == 0xAA);
+        assert(copy[1] == 0xBB);
+        assert(copy[2] == 0xCC);
+        assert(copy[3] == 0x00);
+        assert(copy[4] == 0x00);
+        assert(copy[5] == 0x00);
     }
 
     // Test case 3: Empty source ByteArray
     {
         ByteArray empty;
-        ByteArray partial(empty, 5);
+        ByteArray partial(empty, 3);
 
-        // Result should be empty
-        assert(partial.empty());
+        // Result should be all-zero padded
+        assert(partial.size() == 3);
+        assert(partial[0] == 0x00);
+        assert(partial[1] == 0x00);
+        assert(partial[2] == 0x00);
     }
 
     // Test case 4: Zero bytes requested
@@ -855,13 +862,15 @@ void test_resize_growing() {
 
     array.resize(new_size);
 
-    // Check new size is correct, because of std::min this should be 3
-    assert(array.size() == 3);
+    // Check new size is correct, because of std::copy this should be 5
+    assert(array.size() == 5);
 
-    // Verify original content is preserved
+    // Verify original content is preserved and the rest padded
     assert(array[0] == 0x01);
     assert(array[1] == 0x02);
     assert(array[2] == 0x03);
+    assert(array[3] == 0x00);
+    assert(array[4] == 0x00);
 }
 
 // Test shrinking with purge and warning enabled

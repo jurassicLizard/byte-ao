@@ -66,6 +66,11 @@ ByteArray::ByteArray(const std::string_view hex_str)
     }
 }
 
+ByteArray::ByteArray(const ByteArray& other, const size_t num_bytes) : bytes_(num_bytes) {
+    size_t copy_size = std::min(other.size(), num_bytes);
+    std::copy(other.begin(), other.begin() + copy_size, bytes_.begin());
+}
+
 bool ByteArray::secure_wipe()
 {
     const auto options = security::unsafe::SecureErase::Options(true);
