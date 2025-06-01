@@ -255,6 +255,14 @@ void ByteArray::resize(const size_t new_size, const EZeroPadDir zero_pad_dir, bo
     resize(new_size,purge_before_resize,output_warning,zero_pad_dir);
 }
 
+void ByteArray::clear(const bool bsecure_purge)
+{
+    if (bsecure_purge) secure_wipe();
+    *this = ByteArray();
+}
+
+
+
 
 
 

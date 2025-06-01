@@ -4,28 +4,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2025-06-01
 
 ### Security
-- TODO : add secure wiping to clear function of ByteArray
+- Added a secure memory wiping option to function `clear()`
 
 ### Added
-- Added second resize overload with padding direction as second parameter for convenience
+- Added a second resize overload with padding direction as second parameter for convenience
 - Added comprehensive unit tests for resize functionality and overload equivalence
 - Added EZeroPadDir padding direction control to resize operations
 - Added MSB_PAD and LSB_PAD support for resize operations
 
 ### Changed
 - Added documentation for resize functionality
-- Enhanced resize functionality to support configurable padding direction (MSB_PAD/LSB_PAD)
+- Enhanced resize functionality to support a configurable padding direction (MSB_PAD/LSB_PAD)
 - Updated resize method signature to include EZeroPadDir parameter
 - Improved resize behavior with better control over zero-padding placement
 - Updated documentation with detailed resize examples and padding direction explanations
+- Enhanced function with optional secure purging parameter (`bsecure_purge`) `clear()`
+- now supports secure memory wiping before clearing when `bsecure_purge=true` `clear()`
+
 
 ### Fixed
 - Improved resize implementation to properly handle padding direction in all scenarios
 
-## [0.2.0] 2025-05-31
+## [0.2.0] - 2025-05-31
 
 ### Added
 - Added an Equality comparison overload to ByteArray
@@ -49,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## [0.1.0-alpha.1]
+## [0.1.0-alpha.1] - 2025-05-23
 
 ### Added
 - Added a new copy constructor that copies only n bytes as given in the constructor itself

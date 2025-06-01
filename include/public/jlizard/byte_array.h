@@ -307,9 +307,9 @@ namespace jlizard
          * Removes all elements from the underlying vector, leaving it with a size of 0.
          * The capacity of the vector is not affected, and no reallocation happens.
          * All references, pointers, and iterators to elements are invalidated.
-         * FIXME needs secure_wipe handling
+         *
          */
-        constexpr void clear() noexcept { bytes_.clear(); }
+        void clear(const bool bsecure_purge = true);
 
         // utility methods
         //get as 64bit unsigned long , if byte array is too large we throw an invalid argument exception

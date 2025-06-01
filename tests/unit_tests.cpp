@@ -1407,6 +1407,60 @@ void run_all_resize_overload_tests() {
     std::cout << "All resize overload tests passed!" << std::endl;
 }
 
+void test_clear_regular() {
+    ByteArray ba = ByteArray::create_from_string("test_data");
+    assert(!ba.empty());
+    assert(ba.size() == 9);
+
+    ba.clear(false);
+    assert(ba.empty());
+    assert(ba.size() == 0); // NOLINT
+
+    PRINT_PASSED();
+}
+
+void test_clear_secure() {
+    ByteArray ba = ByteArray::create_from_string("sensitive_data");
+    assert(!ba.empty());
+    assert(ba.size() == 14);
+
+    ba.clear(true);
+    assert(ba.empty());
+    assert(ba.size() == 0); // NOLINT
+
+    PRINT_PASSED();
+}
+
+void test_clear_empty_array() {
+    ByteArray ba;
+    assert(ba.empty());
+
+    ba.clear(true);
+    assert(ba.empty());
+    assert(ba.size() == 0); // NOLINT
+
+    PRINT_PASSED();
+}
+
+void test_clear_default_parameter() {
+    ByteArray ba = ByteArray::create_from_string("default_test");
+    assert(!ba.empty());
+
+    ba.clear(); // Test without parameter
+    assert(ba.empty());
+    assert(ba.size() == 0); // NOLINT
+
+    PRINT_PASSED();
+}
+
+void run_all_clear_tests() {
+    test_clear_regular();
+    test_clear_secure();
+    test_clear_empty_array();
+    test_clear_default_parameter();
+
+    std::cout << "All clear method tests passed!" << std::endl;
+}
 
 // Main test function
 int main() {
@@ -1436,6 +1490,7 @@ int main() {
     test_as_hex_string_all();
     run_all_prealloc_tests();
     run_all_resize_overload_tests();
+    run_all_clear_tests();
 
 
     std::cout << "All tests passed successfully!" << std::endl;
