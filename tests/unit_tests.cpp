@@ -31,7 +31,6 @@
 #include <functional>
 #include <sstream>
 #include <iostream>
-#include <pstl/execution_defs.h>
 
 using namespace jlizard;
 
@@ -1233,11 +1232,11 @@ void test_as_hex_string_all() {
 
 void test_create_with_prealloc_preserves_capacity() {
     // Test that capacity is preserved correctly
-    const size_t requested_capacity = 1000;
+    constexpr size_t requested_capacity = 1000;
     jlizard::ByteArray ba = jlizard::ByteArray::create_with_prealloc(requested_capacity);
 
     // Check that the array starts empty
-    assert(ba.size() == 0);
+    assert(ba.empty());
 
     // We can't directly check capacity since ByteArray doesn't expose it
     // But we can verify it handles the requested capacity without reallocation
@@ -1259,7 +1258,7 @@ void test_create_with_prealloc_preserves_capacity() {
 void test_create_with_prealloc_zero_capacity() {
     // Test with zero capacity
     jlizard::ByteArray ba = jlizard::ByteArray::create_with_prealloc(0);
-    assert(ba.size() == 0);
+    assert(ba.empty());
     assert(ba.empty());
 
     PRINT_PASSED();
@@ -1267,9 +1266,9 @@ void test_create_with_prealloc_zero_capacity() {
 
 void test_create_with_prealloc_large_capacity() {
     // Test with very large capacity
-    const size_t large_capacity = 10 * 1024 * 1024; // 10 MB
+    constexpr size_t large_capacity = 10 * 1024 * 1024; // 10 MB
     jlizard::ByteArray ba = jlizard::ByteArray::create_with_prealloc(large_capacity);
-    assert(ba.size() == 0);
+    assert(ba.empty());
     assert(ba.empty());
 
     // Add a small amount of data
@@ -1294,7 +1293,7 @@ void test_create_with_prealloc_functionality() {
 
     // Check clear
     ba.clear();
-    assert(ba.size() == 0);
+    assert(ba.empty());
     assert(ba.empty());
 
     PRINT_PASSED();
@@ -1308,6 +1307,104 @@ void run_all_prealloc_tests() {
 
     // If we get here, all tests passed
     printf("All create_with_prealloc tests passed!\n");
+}
+
+void test_resize_with_padding_direction_overload() {
+    // Test resize overload that takes padding direction as second parameter
+    ByteArray ba = {0x01, 0x02, 0x03};
+
+    // Test growing with MSB padding
+    ba.resize(5, EZeroPadDir::MSB_PAD);
+    const ByteArray expected_msb_padded = {0x00, 0x00, 0x01, 0x02, 0x03};
+    assert(ba == expected_msb_padded);
+
+    // Test growing with LSB padding
+    ba = {0x01, 0x02, 0x03};
+    ba.resize(5, EZeroPadDir::LSB_PAD);
+    const ByteArray expected_lsb_padded = {0x01, 0x02, 0x03, 0x00, 0x00};
+    assert(ba == expected_lsb_padded);
+
+    // Test shrinking with MSB padding
+    ba = {0x01, 0x02, 0x03, 0x04, 0x05};
+    ba.resize(3, EZeroPadDir::MSB_PAD);
+    const ByteArray expected_msb_shrink = {0x03, 0x04, 0x05};
+    assert(ba == expected_msb_shrink);
+
+    // Test shrinking with LSB padding
+    ba = {0x01, 0x02, 0x03, 0x04, 0x05};
+    ba.resize(3, EZeroPadDir::LSB_PAD);
+    const ByteArray expected_lsb_shrink = {0x01, 0x02, 0x03};
+    assert(ba == expected_lsb_shrink);
+
+    PRINT_PASSED();
+}
+
+void test_resize_with_custom_security_options() {
+    ByteArray ba = {0x01, 0x02, 0x03, 0x04, 0x05};
+
+    // Test with custom security options (disable purge and warning)
+    ba.resize(3, EZeroPadDir::LSB_PAD, false, false);
+    const ByteArray expected = {0x01, 0x02, 0x03};
+    assert(ba == expected);
+
+    // Test with only custom purge option
+    ba = {0x01, 0x02, 0x03, 0x04, 0x05};
+    ba.resize(3, EZeroPadDir::LSB_PAD, false);
+    assert(ba == expected);
+
+    // Verify warning output when shrinking with warning enabled
+    ba = {0x01, 0x02, 0x03, 0x04, 0x05};
+    std::string stderr_output = capture_stderr([&]() {
+        ba.resize(3, EZeroPadDir::LSB_PAD, true, true);
+    });
+    assert(!stderr_output.empty());
+    assert(stderr_output.find("SECURITY WARNING") != std::string::npos);
+
+    // Verify no warning output when warning disabled
+    ba = {0x01, 0x02, 0x03, 0x04, 0x05};
+    stderr_output = capture_stderr([&]() {
+        ba.resize(3, EZeroPadDir::LSB_PAD, true, false);
+    });
+    assert(stderr_output.empty());
+
+    PRINT_PASSED();
+}
+
+void test_resize_overloads_equivalence() {
+    // Test that both overloads produce the same results with equivalent parameters
+
+    // Growing with MSB padding
+    ByteArray ba1 = {0x01, 0x02, 0x03};
+    ByteArray ba2 = {0x01, 0x02, 0x03};
+
+    ba1.resize(5, true, true, EZeroPadDir::MSB_PAD);
+    ba2.resize(5, EZeroPadDir::MSB_PAD);
+    assert(ba1 == ba2);
+
+    // Shrinking with LSB padding
+    ba1 = {0x01, 0x02, 0x03, 0x04, 0x05};
+    ba2 = {0x01, 0x02, 0x03, 0x04, 0x05};
+
+    ba1.resize(3, true, true, EZeroPadDir::LSB_PAD);
+    ba2.resize(3, EZeroPadDir::LSB_PAD);
+    assert(ba1 == ba2);
+
+    // Custom security settings
+    ba1 = {0x01, 0x02, 0x03, 0x04, 0x05};
+    ba2 = {0x01, 0x02, 0x03, 0x04, 0x05};
+
+    ba1.resize(3, false, false, EZeroPadDir::MSB_PAD);
+    ba2.resize(3, EZeroPadDir::MSB_PAD, false, false);
+    assert(ba1 == ba2);
+
+    PRINT_PASSED();
+}
+
+void run_all_resize_overload_tests() {
+    test_resize_with_padding_direction_overload();
+    test_resize_with_custom_security_options();
+    test_resize_overloads_equivalence();
+    std::cout << "All resize overload tests passed!" << std::endl;
 }
 
 
@@ -1338,6 +1435,7 @@ int main() {
     test_create_from_string_all();
     test_as_hex_string_all();
     run_all_prealloc_tests();
+    run_all_resize_overload_tests();
 
 
     std::cout << "All tests passed successfully!" << std::endl;

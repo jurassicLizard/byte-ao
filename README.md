@@ -18,9 +18,18 @@ A high-level C++ abstraction for byte array operations designed while exploring 
   * [Overview](#overview)
   * [Features](#features)
   * [Example Usage](#example-usage)
-    * [General Byte array operations](#general-byte-array-operations)
+    * [Basic Construction and creation](#basic-construction-and-creation)
+    * [Static Factory Methods](#static-factory-methods)
+    * [Data Access and Iteration](#data-access-and-iteration)
+    * [Bitwise Operations](#bitwise-operations)
+    * [Concatenation Operations](#concatenation-operations)
+    * [Resizing and Memory Management](#resizing-and-memory-management)
+    * [Conversion and Comparison](#conversion-and-comparison)
+    * [Copy/Move Semantics and Security](#copymove-semantics-and-security)
+    * [Partial Copy Constructor and Advanced Features](#partial-copy-constructor-and-advanced-features)
     * [Example use with OpenSSL (Optional)](#example-use-with-openssl-optional)
     * [Other Examples](#other-examples)
+    * [Available Static Factory Methods](#available-static-factory-methods)
   * [Building and Usage](#building-and-usage)
     * [Option 1: Using add_subdirectory()](#option-1-using-add_subdirectory)
     * [Option 2: Using FetchContent](#option-2-using-fetchcontent)
@@ -28,8 +37,9 @@ A high-level C++ abstraction for byte array operations designed while exploring 
   * [Testing](#testing)
   * [Requirements](#requirements)
   * [Important Implementation Notes](#important-implementation-notes)
+    * [Security Considerations](#security-considerations)
     * [Endianness Considerations](#endianness-considerations)
-  * [Security Considerations](#security-considerations)
+    * [Padding Direction and Resize Behavior](#padding-direction-and-resize-behavior)
   * [Changelog](#changelog)
   * [License](#license)
   * [WIPs and TODOs](#wips-and-todos)
@@ -50,24 +60,27 @@ The Byte-Array Operations Library provides a clean, safe interface for working w
 
 ## Features
 
-- **Multiple Construction Methods**: Create byte arrays from hex strings, raw bytes, or numeric values
+- **Multiple Construction Methods**: Create byte arrays from hex strings, raw bytes, numeric values, or strings
+- **Partial Copy Constructor**: Create byte arrays from portions of existing arrays with padding control
 - **Bitwise Operations**: XOR and complement operations with proper alignment semantics
 - **Secure Memory Handling**: Methods to securely erase sensitive data from memory
-- **Flexible Resizing**: Resize byte arrays with options for secure purging and warnings
+- **Flexible Resizing**: Resize byte arrays with configurable padding direction, secure purging, and warning options
+- **String Conversion**: Convert to/from hex strings and create from string views
+- **Memory Preallocation**: Create byte arrays with reserved capacity for performance optimization
 - **Modern C++ Design**: Uses move semantics, RAII principles, and C++17 features
 - **Conversion Utilities**: Easily convert between byte arrays and numeric types
 - **Comprehensive Test Suite**: Thoroughly tested core functionality
 
 ## Example Usage
 
-### General Byte array operations
+### Basic Construction and creation
 
 ```cpp
 #include "jlizard/byte_array.h"
 
 using namespace jlizard;
 
-void example() {
+void basic_construction_examples() {
     // Create a ByteArray from a hex string
     ByteArray key("deadbeef");
     
@@ -75,63 +88,83 @@ void example() {
     ByteArray iv({0x01, 0x02, 0x03, 0x04});
     
     // Use initializer list for defining byte sequences
-    ByteArray bytes = {0xAA, 0xBB, 0xCC, 0xDD};  // Uses initializer_list constructor
+    ByteArray bytes = {0xAA, 0xBB, 0xCC, 0xDD};
     
     // Create from a single byte (requires explicit cast)
     ByteArray single_byte(static_cast<unsigned char>(0x42));
     // Or create via initializer list
     ByteArray another_single_byte = {0x42};
     
-    // Create from uint64_t values
-    // INCORRECT: ByteArray small_uint = 42;  // No longer allowed - prevents accidental truncation
-    // CORRECT:
-    ByteArray small_uint = {42};  // Using initializer list for a single value
-    // Or explicitly create from uint64_t
-    ByteArray large_uint = ByteArray::create_from_uint64(0x1122334455667788);  // Full 8-byte representation
-    
     // Fixed-size constructor with fill value
     ByteArray filled_array(5, 0xAA);  // Creates a 5-byte array filled with 0xAA
+}
+```
+
+### Static Factory Methods
+
+```cpp
+void factory_methods_examples() {
+    // Create from uint64_t values
+    ByteArray small_uint = {42};  // Using initializer list for a single value
+    // Or explicitly create from uint64_t
+    ByteArray large_uint = ByteArray::create_from_uint64(0x1122334455667788);
     
-    // XOR operation
-    ByteArray result = key ^ iv;
+    // Create from string data
+    ByteArray from_string = ByteArray::create_from_string("Hello, World!");
     
-    // Convert to uint64_t
-    uint64_t value = result.as_64bit_uint();
+    // Generate random bytes using PRNG
+    ByteArray random_bytes = ByteArray::create_from_prng(16);  // Create a 16-byte random array
+    // Note: There's a 1MB limit on the size of random byte arrays
+    
+    // Create with pre-allocated capacity for performance
+    ByteArray prealloc = ByteArray::create_with_prealloc(1024);  // Reserve 1024 bytes
+}
+```
+
+### Data Access and Iteration
+
+```cpp
+void data_access_examples() {
+    ByteArray data = {0x01, 0x02, 0x03, 0x04, 0x05};
     
     // Accessing raw data and size 
-    const unsigned char* raw_data = result.data(); 
-    size_t data_length = result.size();
+    const unsigned char* raw_data = data.data(); 
+    size_t data_length = data.size();
     
     // Iterate through the bytes 
-    for (auto byte : result) 
-    { 
+    for (auto byte : data) {
         // Process each byte
     }
     
     // Access bytes using subscript operator with bounds checking
     try {
-        unsigned char first_byte = result[0];  // Safe access with bounds checking
+        unsigned char first_byte = data[0];  // Safe access with bounds checking
         // Trying to access an out-of-bounds index would throw std::out_of_range
-        // unsigned char invalid = result[1000];  // This would throw if result.size() < 1001
     } catch (const std::out_of_range& e) {
         // Handle the exception
     }
     
     // Using at() method for bounds-checked access
     try {
-        unsigned char third_byte = result.at(2);  // Safe access with bounds checking
+        unsigned char third_byte = data.at(2);  // Safe access with bounds checking
     } catch (const std::out_of_range& e) {
         // Handle the exception
     }
+}
+```
+
+### Bitwise Operations
+
+```cpp
+void bitwise_operations_examples() {
+    ByteArray key("deadbeef");
+    ByteArray iv({0x01, 0x02, 0x03, 0x04});
     
-    // Single-byte operations (requires explicit cast)
+    // XOR operations
+    ByteArray result = key ^ iv;  // XOR two ByteArrays
+    
     ByteArray modified = result;
-    // INCORRECT: modified ^= 0xFF;  // No longer allowed
-    // CORRECT:
-    modified ^= static_cast<unsigned char>(0xFF);  // XOR the last byte with 0xFF
-    
-    // Reassignment with initializer list (still works)
-    modified = {0x11, 0x22, 0x33};  // Replace contents with new values
+    modified ^= static_cast<unsigned char>(0xFF);  // XOR with single byte
     
     // One's complement operation (bitwise NOT)
     ByteArray original({0xAA, 0xBB, 0xCC});
@@ -139,92 +172,75 @@ void example() {
     // original remains {0xAA, 0xBB, 0xCC}
     // complemented is {0x55, 0x44, 0x33}
 
-    // Note: There is no in-place complement operator - the ~ operator always returns a new ByteArray
+    // Note: There is no in-place complement operator
     // To perform an in-place complement, use assignment:
     ByteArray to_modify({0xFF, 0x00});
     to_modify = ~to_modify;  // Now contains {0x00, 0xFF}
+}
+```
+
+### Concatenation Operations
+
+```cpp
+void concatenation_examples() {
+    ByteArray first = {0x01, 0x02};
+    ByteArray second = {0x03, 0x04};
+    ByteArray third = {0x05, 0x06};
     
-    // Copy and move semantics
-    ByteArray copy = key;  // Copy constructor
-    ByteArray moved = std::move(copy);  // Move constructor
+    // Method 1: In-place concatenation
+    ByteArray result1 = first;
+    result1.concat(second);  // Now contains {0x01, 0x02, 0x03, 0x04}
     
-    ByteArray assign_to;
-    assign_to = key;  // Copy assignment
+    // Method 2: Create a new ByteArray from concatenation
+    ByteArray result2 = first.concat_copy(second);  // Contains {0x01, 0x02, 0x03, 0x04}
     
-    ByteArray move_to;
-    move_to = std::move(moved);  // Move assignment
+    // Method 3: Static concatenation of multiple ByteArrays
+    ByteArray combined = ByteArray::concat_and_create({first, second, third});
+    // combined now contains {0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
+}
+```
+
+### Resizing and Memory Management
+
+```cpp
+void resize_examples() {
+    // Basic resize operations
+    ByteArray data = {0xAA, 0xBB};
+    data.resize(4);  // Now has size 4 with value {0xAA, 0xBB, 0x00, 0x00}
+    data.resize(1);  // Now has size 1 with value {0xAA}
     
-    // When done with sensitive data, wipe it securely
-    key.secure_wipe();
+    // Resize with padding direction control
+    ByteArray msb_data = {0x01, 0x02, 0x03};
+    msb_data.resize(5, EZeroPadDir::MSB_PAD);  // {0x00, 0x00, 0x01, 0x02, 0x03}
     
-        // NEW v0.0.4 features
+    ByteArray lsb_data = {0x01, 0x02, 0x03};
+    lsb_data.resize(5, EZeroPadDir::LSB_PAD);  // {0x01, 0x02, 0x03, 0x00, 0x00}
+    
+    // Secure resize operations for sensitive data
+    ByteArray sensitive_data = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
+    sensitive_data.resize(4, true);  // Securely wipes remaining data
+    
+    // Resize with custom security options
+    ByteArray secret_data = {0x01, 0x02, 0x03, 0x04, 0x05};
+    secret_data.resize(2, true, false);  // Secure wipe but no warning
     
     // Clear a byte array
     ByteArray to_clear = {0x01, 0x02, 0x03};
     to_clear.clear();  // Now empty with size 0
+}
+```
+
+### Conversion and Comparison
+
+```cpp
+void conversion_comparison_examples() {
+    ByteArray data = {0x12, 0x34, 0x56, 0x78};
     
-    // Resize a byte array
-    ByteArray to_resize = {0xAA, 0xBB};
-    to_resize.resize(4);  // Now has size 4 with value {0xAA, 0xBB, 0x00, 0x00}
-    to_resize.resize(1);  // Now has size 1 with value {0xAA}
+    // Convert to uint64_t (throws if array is larger than 8 bytes)
+    uint64_t value = data.as_64bit_uint();
     
-    // Concatenate byte arrays (multiple methods)
-    ByteArray first = {0x01, 0x02};
-    ByteArray second = {0x03, 0x04};
-    
-    // Method 1: In-place concatenation with another ByteArray
-    ByteArray result = first;
-    result.concat(second);  // Now contains {0x01, 0x02, 0x03, 0x04}
-    
-    // Method 2: Create a new ByteArray from concatenation
-    ByteArray concat_result = first.concat_copy(second);  // Contains {0x01, 0x02, 0x03, 0x04}
-    
-    // Method 3: Static concatenation of multiple ByteArrays
-    ByteArray third = {0x05, 0x06};
-    ByteArray combined = ByteArray::concat_and_create({first, second, third});
-    // combined now contains {0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
-    
-    // Generate random bytes using PRNG
-    ByteArray random_bytes = ByteArray::create_from_prng(16);  // Create a 16-byte random array
-    // There's a 1MB limit on the size of random byte arrays
-    try {
-        // This would throw an exception
-        // ByteArray too_large = ByteArray::create_from_prng(2 * 1024 * 1024);
-    } catch (const std::invalid_argument& e) {
-        // Handle exception
-    }
-    
-    // Enhanced resize operations with security options
-    ByteArray secure_data = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE};
-    
-    // Basic resize (grows the array)
-    secure_data.resize(8);  // Now contains {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x00, 0x00, 0x00}
-    
-    // Resize with secure wipe option (for sensitive data)
-    // This creates a new array with only the needed data, wipes the old array, then replaces it
-    ByteArray sensitive_data = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
-    sensitive_data.resize(4, true);  // Now contains {0x11, 0x22, 0x33, 0x44}, and remaining data was securely wiped
-    
-    // Resize with warning when shrinking (useful for security-conscious applications)
-    ByteArray sensitive_data2 = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE};
-    // This will print a warning to stderr when shrinking:
-    // "SECURITY WARNING: attempting to shrink a byte array buffer this could lead to data remnance"
-    sensitive_data2.resize(3, true, true);  // Now contains {0xAA, 0xBB, 0xCC}
-    
-    // Full control of resize behavior
-    ByteArray data = {0x01, 0x02, 0x03, 0x04, 0x05};
-    // Quietly shrink without warning and without secure wipe
-    data.resize(2, false, false);  // Now contains {0x01, 0x02}
-    
-    // Silently shrink with secure wipe but no warning
-    ByteArray secret_data = {0x01, 0x02, 0x03, 0x04, 0x05};
-    secret_data.resize(2, true, false);  // Now contains {0x01, 0x02} and remaining data was securely wiped
-    
-    // When done with sensitive data, always wipe it
-    sensitive_data.secure_wipe();
-    sensitive_data2.secure_wipe();
-    secret_data.secure_wipe();
-    
+    // Convert to hex string
+    std::string hex = data.as_hex_string();  // "12345678"
     
     // Equality comparison
     ByteArray a = {0x01, 0x02, 0x03};
@@ -237,6 +253,50 @@ void example() {
     // The equality operator first checks sizes then compares all elements
     ByteArray shorter = {0x01, 0x02};
     bool different_sizes = (a == shorter);  // false - different sizes
+}
+```
+
+### Copy/Move Semantics and Security
+
+```cpp
+void memory_semantics_examples() {
+    ByteArray key("deadbeef");
+    
+    // Copy and move semantics
+    ByteArray copy = key;  // Copy constructor
+    ByteArray moved = std::move(copy);  // Move constructor
+    
+    ByteArray assign_to;
+    assign_to = key;  // Copy assignment
+    
+    ByteArray move_to;
+    move_to = std::move(moved);  // Move assignment
+    
+    // Reassignment with initializer list
+    assign_to = {0x11, 0x22, 0x33};  // Replace contents with new values
+    
+    // Secure memory handling
+    // When done with sensitive data, wipe it securely
+    key.secure_wipe();
+    assign_to.secure_wipe();
+}
+```
+
+### Partial Copy Constructor and Advanced Features
+
+```cpp
+void advanced_features_examples() {
+    ByteArray source = {0x01, 0x02, 0x03, 0x04, 0x05};
+    
+    // Partial copy with LSB padding (default)
+    ByteArray partial_lsb(source, 3);  // {0x01, 0x02, 0x03}
+    
+    // Partial copy with MSB padding
+    ByteArray partial_msb(source, 3, EZeroPadDir::MSB_PAD);  // {0x03, 0x04, 0x05}
+    
+    // Extend with padding
+    ByteArray extended_lsb(source, 8);  // {0x01, 0x02, 0x03, 0x04, 0x05, 0x00, 0x00, 0x00}
+    ByteArray extended_msb(source, 8, EZeroPadDir::MSB_PAD);  // {0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05}
 }
 ```
 
@@ -301,6 +361,16 @@ void openssl_decryption_example() {
 ### Other Examples
 
 Check [Unit Tests](tests/unit_tests.cpp) that contain ample examples on the usage of this library
+
+### Available Static Factory Methods
+
+The library provides several static factory methods for creating ByteArray objects:
+
+- `ByteArray::create_from_uint64(uint64_t value)` - Creates from a 64-bit unsigned integer
+- `ByteArray::create_from_string(std::string_view sv)` - Creates from string data
+- `ByteArray::create_from_prng(size_t num_bytes)` - Creates with cryptographically random bytes (up to 1MB)
+- `ByteArray::create_with_prealloc(size_t reserve_size)` - Creates with pre-allocated capacity
+- `ByteArray::concat_and_create(std::initializer_list<ByteArray>)` - Creates by concatenating multiple arrays
 
 ## Building and Usage
 
@@ -371,6 +441,12 @@ Tests validate core functionality including byte array construction, bitwise ope
 
 ## Important Implementation Notes
 
+### Security Considerations
+This library includes functionality to securely erase sensitive data from memory, but offers no guarantees against sophisticated memory forensic techniques or side-channel attacks. Always follow security best practices when handling cryptographic material.
+
+**Note on Secure Wipe Testing:** The secure memory wiping procedures, while implemented, are not yet thoroughly tested with unit tests. This functionality should be considered a work in progress from a verification standpoint.
+
+
 ### Endianness Considerations
 
 In cryptographic applications, endianness matters when converting between byte arrays and multi-byte values (like `uint32_t` or `uint64_t`). Many cryptographic algorithms specify operations in big-endian format (network byte order), while most modern CPUs use little-endian format internally.
@@ -383,10 +459,22 @@ This library provides consistent endianness handling:
 
 When interfacing with platform-specific APIs or libraries that assume different endianness, be careful to apply appropriate conversions.
 
-## Security Considerations
-This library includes functionality to securely erase sensitive data from memory, but offers no guarantees against sophisticated memory forensic techniques or side-channel attacks. Always follow security best practices when handling cryptographic material.
+### Padding Direction and Resize Behavior
 
-**Note on Secure Wipe Testing:** The secure memory wiping procedures, while implemented, are not yet thoroughly tested with unit tests. This functionality should be considered a work in progress from a verification standpoint.
+The library supports two padding directions controlled by the `EZeroPadDir` enum:
+
+- **LSB_PAD (Default)**: Preserves least significant bytes
+  - When growing: adds zeros at the end
+  - When shrinking: keeps leftmost bytes
+- **MSB_PAD**: Preserves most significant bytes
+  - When growing: adds zeros at the beginning
+  - When shrinking: keeps rightmost bytes
+
+The `resize()` method has two overloads:
+1. `resize(size_t new_size, bool purge_before_resize, bool output_warning, EZeroPadDir zero_pad_dir)`
+2. `resize(size_t new_size, EZeroPadDir zero_pad_dir, bool purge_before_resize, bool output_warning)` - Convenience overload with padding direction as second parameter
+
+Both methods support secure memory wiping and optional security warnings when shrinking arrays.
 
 ## Changelog
 

@@ -41,6 +41,39 @@
 //FIXME add boolean flag for automatic secure wipe operation
 namespace jlizard
 {
+
+    /**
+     * @brief Direction for zero-padding and truncation in ByteArray operations
+     *
+     * This enum specifies how bytes should be padded when extending a ByteArray
+     * and which bytes to preserve when truncating, following cryptographic
+     * network byte order (big-endian) conventions.
+     */
+    enum class EZeroPadDir : std::uint8_t
+    {
+        /**
+         * @brief Preserves most significant bytes (right side in big-endian)
+         *
+         * When extending: Adds zeros at the beginning of the array
+         * When truncating: Keeps the rightmost/most significant bytes
+         */
+        MSB_PAD = 1,
+        /**
+         * @brief Preserves least significant bytes (left side in big-endian)
+         *
+         * When extending: Adds zeros at the end of the array
+         * When truncating: Keeps the leftmost/least significant bytes
+         */
+        LSB_PAD = 2,
+        /**
+         * @brief Default padding direction (LSB_PAD)
+         *
+         * Uses LSB_PAD as the default for consistency with std::vector behavior
+         */
+        DEFAULT_PAD = LSB_PAD
+    };
+
+
     /**
      * @class ByteArray
      * @brief A class representing a dynamic array of bytes with various utility functions
@@ -50,7 +83,6 @@ namespace jlizard
     {
     private:
         std::vector<unsigned char> bytes_;
-
     public:
         // Maximum size for random byte generation (1 MB)
         static constexpr size_t MAX_RANDOM_BYTES = 1024 * 1024;
@@ -61,36 +93,46 @@ namespace jlizard
         /**
          * @brief Constructs a ByteArray with a specified number of bytes from another ByteArray
          *
-         * Creates a new ByteArray with a size of exactly `num_bytes`. If the source ByteArray
-         * (`other`) has fewer elements than `num_bytes`, the new ByteArray will be filled with:
-         * - All elements from `other` at the beginning
-         * - Default-initialized elements (0x00) for any remaining positions
-         *
-         * If `other` has more elements than `num_bytes`, only the first `num_bytes` elements
-         * are copied.
+         * Creates a new ByteArray with a size of exactly `num_bytes` following cryptographic
+         * network byte order (big-endian) conventions.
          *
          * @param other The source ByteArray to copy from
          * @param num_bytes The exact size of the new ByteArray
+         * @param zero_pad_dir The direction for padding/truncation:
+         *        - MSB_PAD: Preserves the most significant bytes (rightmost in big-endian):
+         *          - When extending: adds zeros at the beginning
+         *          - When truncating: keeps the rightmost/most significant bytes
+         *        - LSB_PAD: Preserves the least significant bytes (leftmost in big-endian):
+         *          - When extending: adds zeros at the end (default, consistent with std::vector)
+         *          - When truncating: keeps the leftmost/least significant bytes
          *
-         * @note This constructor always creates a ByteArray of exactly `num_bytes` size,
-         *       regardless of the size of `other`
-         * @note Default-initialized values for unsigned char are 0x00
+         * @note This constructor always creates a ByteArray of exactly `num_bytes` size
+         * @note While this library works with cryptographic network byte order (big-endian),
+         *       the default padding is LSB_PAD to maintain consistency with the underlying std::vector
          *
          * @example
          * // Create a ByteArray with 5 bytes
          * ByteArray original = {0x01, 0x02, 0x03, 0x04, 0x05};
          *
-         * // Create a ByteArray with 3 bytes (truncates original)
-         * ByteArray truncated(original, 3); // Contains {0x01, 0x02, 0x03}
+         * // LSB_PAD examples (default):
+         * // Create a ByteArray with 3 bytes (truncates by removing from the right)
+         * ByteArray lsb_truncated(original, 3); // Contains {0x01, 0x02, 0x03}
          *
-         * // Create a ByteArray with 8 bytes (extends with zeros)
-         * ByteArray extended(original, 8); // Contains {0x01, 0x02, 0x03, 0x04, 0x05, 0x00, 0x00, 0x00}
+         * // Create a ByteArray with 8 bytes (extends with zeros at the end)
+         * ByteArray lsb_extended(original, 8); // Contains {0x01, 0x02, 0x03, 0x04, 0x05, 0x00, 0x00, 0x00}
+         *
+         * // MSB_PAD examples:
+         * // Create a ByteArray with 3 bytes (truncates by removing from the left)
+         * ByteArray msb_truncated(original, 3, EZeroPadDir::MSB_PAD); // Contains {0x03, 0x04, 0x05}
+         *
+         * // Create a ByteArray with 8 bytes (extends with zeros at the beginning)
+         * ByteArray msb_extended(original, 8, EZeroPadDir::MSB_PAD); // Contains {0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05}
          */
-        ByteArray(const ByteArray& other,const size_t num_bytes);
+        ByteArray(const ByteArray& other,const size_t num_bytes,const EZeroPadDir zero_pad_dir = EZeroPadDir::DEFAULT_PAD);
         ByteArray& operator=(const ByteArray& other) = default;
         ByteArray(ByteArray&& other) noexcept : bytes_(std::move(other.bytes_)) {}
         ByteArray& operator=(ByteArray&& other) noexcept;
-
+        //FIXME collect all unit test utilities together
         ByteArray() {bytes_.reserve(JLBA_DEFAULT_ALLOC_SIZE);};
         explicit ByteArray(const std::vector<unsigned char>& byte_array): bytes_(byte_array) {};
         explicit ByteArray(std::vector<unsigned char>&& byte_array) noexcept : bytes_(std::move(byte_array)) {};
@@ -184,14 +226,78 @@ namespace jlizard
         [[nodiscard]] std::vector<unsigned char>::const_iterator end() const noexcept { return bytes_.end(); }
 
         /**
-         * @brief Resize utility that calls the resize function on the underlying vector.
-         * This has the same behavior and caveats as the std::vector resize() utility.
-         * FIXME needs secure_wipe handling
+         * @brief Resizes the ByteArray to the specified size with configurable padding direction
+         *
+         * This method allows resizing with control over which bytes are preserved:
+         * - When growing: zeros can be added at the beginning or end based on padding direction
+         * - When shrinking: bytes can be removed from the beginning or end based on padding direction
+         *
          * @param new_size The new size to resize the ByteArray to
-         * @param purge_before_resize if we shrink or resize the array purge the old one first for security reasons
-         * @param output_warning outputs a warning to `std::cerr` if we are shrinking the array
+         * @param purge_before_resize If true, securely wipes the original data before
+         *        resizing to prevent data remnance. This is especially important when
+         *        shrinking the array.
+         * @param output_warning If true, outputs a warning to std::cerr when shrinking
+         *        the array as this operation could potentially lead to data remnance
+         *        if not handled properly.
+         * @param zero_pad_dir Determines how the resize operation preserves bytes:
+         *        - MSB_PAD: Preserves the most significant bytes (rightmost in big-endian):
+         *          - When growing: adds zeros at the beginning
+         *          - When shrinking: keeps the rightmost/most significant bytes
+         *        - LSB_PAD: Preserves the least significant bytes (leftmost in big-endian):
+         *          - When growing: adds zeros at the end (default, consistent with std::vector)
+         *          - When shrinking: keeps the leftmost/least significant bytes
+         *
+         * @note When purge_before_resize is true, this method uses a secure copy-and-wipe
+         *       approach that creates a temporary ByteArray, securely wipes the original,
+         *       and then assigns the temporary to this object.
+         *
+         * @warning Shrinking a ByteArray may expose sensitive data if not properly wiped.
+         *          Always consider using purge_before_resize=true when handling sensitive data.
+         *
+         * @see ByteArray(const ByteArray&, size_t, EZeroPadDir) - Uses the same padding behavior
+         *      for consistent handling of byte significance
+         *
+         * @example
+         * ByteArray data = {0x01, 0x02, 0x03, 0x04, 0x05};
+         *
+         * // Grow with LSB padding (default): adds zeros at the end
+         * data.resize(8); // Results in {0x01, 0x02, 0x03, 0x04, 0x05, 0x00, 0x00, 0x00}
+         *
+         * // Grow with MSB padding: adds zeros at the beginning
+         * data.resize(8, false, false, EZeroPadDir::MSB_PAD); // Results in {0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05}
+         *
+         * // Shrink with LSB padding (default): removes bytes from the right
+         * data.resize(3); // Results in {0x01, 0x02, 0x03}
+         *
+         * // Shrink with MSB padding: removes bytes from the left
+         * data.resize(3, false, false, EZeroPadDir::MSB_PAD); // Results in {0x03, 0x04, 0x05}
          */
-         void resize(const size_t new_size, bool purge_before_resize = true, bool output_warning = true);
+         void resize(const size_t new_size, bool purge_before_resize = true, bool output_warning = true,const EZeroPadDir zero_pad_dir = EZeroPadDir::DEFAULT_PAD);
+        /**
+         * @brief Convenience overload with padding direction as the second parameter
+         *
+         * This overload places the padding direction parameter second for better readability
+         * when specifying padding behavior is the primary concern. It maintains secure defaults
+         * for purge_before_resize and output_warning while allowing them to be overridden.
+         *
+         * @param new_size The new size to resize the ByteArray to
+         * @param zero_pad_dir Determines how the resize operation preserves bytes
+         *        (see the full resize method documentation for details)
+         * @param purge_before_resize If true (default), securely wipes original data
+         * @param output_warning If true (default), warns when shrinking the array
+         *
+         * @note This overload uses secure defaults that prioritize data security:
+         *       - purge_before_resize = true (securely wipes original data)
+         *       - output_warning = true (warns about potential data remnance when shrinking)
+         *
+         * @example
+         * ByteArray data = {0x01, 0x02, 0x03};
+         * // Using the convenience overload with MSB padding:
+         * data.resize(5, EZeroPadDir::MSB_PAD); // Results in {0x00, 0x00, 0x01, 0x02, 0x03}
+         *
+         * @see resize(size_t, bool, bool, EZeroPadDir) for full documentation on padding behavior
+         */
+         void resize(const size_t new_size,const EZeroPadDir zero_pad_dir, bool purge_before_resize = true, bool output_warning = true);
 
 
 

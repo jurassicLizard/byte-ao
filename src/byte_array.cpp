@@ -66,10 +66,26 @@ ByteArray::ByteArray(const std::string_view hex_str)
     }
 }
 
-ByteArray::ByteArray(const ByteArray& other, const size_t num_bytes) : bytes_(num_bytes) {
-    size_t copy_size = std::min(other.size(), num_bytes);
-    std::copy(other.begin(), other.begin() + copy_size, bytes_.begin());
+ByteArray::ByteArray(const ByteArray& other, const size_t num_bytes, const EZeroPadDir zero_pad_dir)
+    : bytes_(num_bytes, 0x00) {
+    // static cast to the difference type to avoid narrowing conversions
+    const auto copy_size = static_cast<std::vector<unsigned char>::difference_type>(std::min(other.size(), num_bytes));
+
+    if (EZeroPadDir::MSB_PAD == zero_pad_dir) {
+        if (num_bytes > other.size()) {
+            // For MSB padding when extending, copy to the end of the array (leaving zeros at the beginning)
+            std::copy_n(other.begin(), copy_size, bytes_.end() - copy_size);
+        } else {
+            // For MSB padding when truncating, take the last 'num_bytes' bytes from 'other'
+            std::copy_n(other.end() - copy_size, copy_size, bytes_.begin());
+        }
+    } else {
+        // For LSB padding (or when not padding), copy from the beginning
+        std::copy_n(other.begin(), copy_size, bytes_.begin());
+    }
 }
+
+
 
 bool ByteArray::secure_wipe()
 {
@@ -218,23 +234,27 @@ ByteArray ByteArray::create_from_prng(const size_t num_bytes)
 }
 
 
-void ByteArray::resize(const size_t new_size,const bool purge_before_resize,const bool output_warning)
+void ByteArray::resize(const size_t new_size,const bool purge_before_resize,const bool output_warning,const EZeroPadDir zero_pad_dir)
 {
 
     // if we are shrinking then we need to secure wipe the old byte array to avoid data remnance
     if (purge_before_resize && output_warning && (new_size < size())) std::cerr << "SECURITY WARNING : attempting to shrink a byte array buffer this could lead to data remnance" << std::endl;
 
+    ByteArray temp(*this,new_size,zero_pad_dir);
     if (purge_before_resize)
     {
-        ByteArray temp(*this,new_size);
         secure_wipe();
-        *this = temp;
-    }else
-    {
-        bytes_.resize(new_size);
     }
 
+    *this = std::move(temp);
+
 }
+
+void ByteArray::resize(const size_t new_size, const EZeroPadDir zero_pad_dir, bool purge_before_resize, bool output_warning)
+{
+    resize(new_size,purge_before_resize,output_warning,zero_pad_dir);
+}
+
 
 
 

@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - TODO : add secure wiping to clear function of ByteArray
 
+### Added
+- Added second resize overload with padding direction as second parameter for convenience
+- Added comprehensive unit tests for resize functionality and overload equivalence
+- Added EZeroPadDir padding direction control to resize operations
+- Added MSB_PAD and LSB_PAD support for resize operations
+
+### Changed
+- Added documentation for resize functionality
+- Enhanced resize functionality to support configurable padding direction (MSB_PAD/LSB_PAD)
+- Updated resize method signature to include EZeroPadDir parameter
+- Improved resize behavior with better control over zero-padding placement
+- Updated documentation with detailed resize examples and padding direction explanations
+
+### Fixed
+- Improved resize implementation to properly handle padding direction in all scenarios
+
 ## [0.2.0] 2025-05-31
 
 ### Added
@@ -24,10 +40,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added template restrictions for iterator constructor to avoid ambiguity between constructors
 - Fixed Constructor ByteArray(ByteArray& other, const size_t num_bytes) not padding correctly
 
+
 ### Changed
 - Updated Readme.md with examples
 - Reorganized examples for better visibility
 - Removed `const char *` and replaced it with `std::string_view` in ByteArray hex constructor
+
 
 
 
