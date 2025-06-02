@@ -129,6 +129,14 @@ namespace jlizard
          * ByteArray msb_extended(original, 8, EZeroPadDir::MSB_PAD); // Contains {0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05}
          */
         ByteArray(const ByteArray& other,const size_t num_bytes,const EZeroPadDir zero_pad_dir = EZeroPadDir::DEFAULT_PAD);
+        /**
+         * @brief Move constructor with truncation/padding
+         * @param other ByteArray to move from
+         * @param num_bytes Target size for truncation or padding
+         * @param zero_pad_dir Padding direction when size needs to be increased
+         * @see ByteArray(const ByteArray&, size_t, EZeroPadDir)
+         */
+        ByteArray(ByteArray&& other,const size_t num_bytes,const EZeroPadDir zero_pad_dir = EZeroPadDir::DEFAULT_PAD) : ByteArray(other,num_bytes,zero_pad_dir) {};
         ByteArray& operator=(const ByteArray& other) = default;
         ByteArray(ByteArray&& other) noexcept : bytes_(std::move(other.bytes_)) {}
         ByteArray& operator=(ByteArray&& other) noexcept;

@@ -850,9 +850,178 @@ void test_partial_copy_constructor() {
         assert(partial.empty());
     }
 
-    std::cout << "All partial copy constructor tests PASSED" << std::endl;
+    PRINT_PASSED();
 }
 
+
+void test_partial_move_constructor() {
+
+    // Test basic move with truncation (LSB_PAD default)
+    {
+        jlizard::ByteArray original = {0x01, 0x02, 0x03, 0x04, 0x05};
+        jlizard::ByteArray moved_truncated(std::move(original), 3);
+
+        assert(moved_truncated.size() == 3);
+        assert(moved_truncated[0] == 0x01);
+        assert(moved_truncated[1] == 0x02);
+        assert(moved_truncated[2] == 0x03);
+    }
+
+    // Test move with extension (LSB_PAD default)
+    {
+        jlizard::ByteArray original = {0x01, 0x02, 0x03};
+        jlizard::ByteArray moved_extended(std::move(original), 6);
+
+        assert(moved_extended.size() == 6);
+        assert(moved_extended[0] == 0x01);
+        assert(moved_extended[1] == 0x02);
+        assert(moved_extended[2] == 0x03);
+        assert(moved_extended[3] == 0x00);
+        assert(moved_extended[4] == 0x00);
+        assert(moved_extended[5] == 0x00);
+    }
+
+    // Test move with MSB truncation
+    {
+        jlizard::ByteArray original = {0x01, 0x02, 0x03, 0x04, 0x05};
+        jlizard::ByteArray moved_truncated(std::move(original), 3, jlizard::EZeroPadDir::MSB_PAD);
+
+        assert(moved_truncated.size() == 3);
+        assert(moved_truncated[0] == 0x03);
+        assert(moved_truncated[1] == 0x04);
+        assert(moved_truncated[2] == 0x05);
+    }
+
+    // Test move with MSB extension
+    {
+        jlizard::ByteArray original = {0x01, 0x02, 0x03};
+        jlizard::ByteArray moved_extended(std::move(original), 6, jlizard::EZeroPadDir::MSB_PAD);
+
+        assert(moved_extended.size() == 6);
+        assert(moved_extended[0] == 0x00);
+        assert(moved_extended[1] == 0x00);
+        assert(moved_extended[2] == 0x00);
+        assert(moved_extended[3] == 0x01);
+        assert(moved_extended[4] == 0x02);
+        assert(moved_extended[5] == 0x03);
+    }
+
+    // Test move with same size
+    {
+        jlizard::ByteArray original = {0xAA, 0xBB, 0xCC};
+        jlizard::ByteArray moved_same_size(std::move(original), 3);
+
+        assert(moved_same_size.size() == 3);
+        assert(moved_same_size[0] == 0xAA);
+        assert(moved_same_size[1] == 0xBB);
+        assert(moved_same_size[2] == 0xCC);
+    }
+
+    // Test move to zero size
+    {
+        jlizard::ByteArray original = {0x01, 0x02, 0x03};
+        jlizard::ByteArray moved_empty(std::move(original), 0);
+
+        assert(moved_empty.size() == 0); //NOLINT
+        assert(moved_empty.empty());
+    }
+
+    PRINT_PASSED();
+}
+
+void test_copy_constructor_with_size_padding() {
+
+    // Test basic copy with truncation (LSB_PAD default)
+    {
+        jlizard::ByteArray original = {0x01, 0x02, 0x03, 0x04, 0x05};
+        jlizard::ByteArray copied_truncated(original, 3);
+
+        assert(copied_truncated.size() == 3);
+        assert(copied_truncated[0] == 0x01);
+        assert(copied_truncated[1] == 0x02);
+        assert(copied_truncated[2] == 0x03);
+
+        // Verify original is unchanged
+        assert(original.size() == 5);
+        assert(original[0] == 0x01);
+    }
+
+    // Test copy with extension (LSB_PAD default)
+    {
+        jlizard::ByteArray original = {0x01, 0x02, 0x03};
+        jlizard::ByteArray copied_extended(original, 6);
+
+        assert(copied_extended.size() == 6);
+        assert(copied_extended[0] == 0x01);
+        assert(copied_extended[1] == 0x02);
+        assert(copied_extended[2] == 0x03);
+        assert(copied_extended[3] == 0x00);
+        assert(copied_extended[4] == 0x00);
+        assert(copied_extended[5] == 0x00);
+
+        // Verify original is unchanged
+        assert(original.size() == 3);
+    }
+
+    // Test copy with MSB truncation
+    {
+        jlizard::ByteArray original = {0x01, 0x02, 0x03, 0x04, 0x05};
+        jlizard::ByteArray copied_truncated(original, 3, jlizard::EZeroPadDir::MSB_PAD);
+
+        assert(copied_truncated.size() == 3);
+        assert(copied_truncated[0] == 0x03);
+        assert(copied_truncated[1] == 0x04);
+        assert(copied_truncated[2] == 0x05);
+
+        // Verify original is unchanged
+        assert(original.size() == 5);
+    }
+
+    // Test copy with MSB extension
+    {
+        jlizard::ByteArray original = {0x01, 0x02, 0x03};
+        jlizard::ByteArray copied_extended(original, 6, jlizard::EZeroPadDir::MSB_PAD);
+
+        assert(copied_extended.size() == 6);
+        assert(copied_extended[0] == 0x00);
+        assert(copied_extended[1] == 0x00);
+        assert(copied_extended[2] == 0x00);
+        assert(copied_extended[3] == 0x01);
+        assert(copied_extended[4] == 0x02);
+        assert(copied_extended[5] == 0x03);
+
+        // Verify original is unchanged
+        assert(original.size() == 3);
+    }
+
+    // Test copy with same size
+    {
+        jlizard::ByteArray original = {0xAA, 0xBB, 0xCC};
+        jlizard::ByteArray copied_same_size(original, 3);
+
+        assert(copied_same_size.size() == 3);
+        assert(copied_same_size[0] == 0xAA);
+        assert(copied_same_size[1] == 0xBB);
+        assert(copied_same_size[2] == 0xCC);
+
+        // Verify original is unchanged
+        assert(original.size() == 3);
+    }
+
+    // Test copy to zero size
+    {
+        jlizard::ByteArray original = {0x01, 0x02, 0x03};
+        jlizard::ByteArray copied_empty(original, 0);
+
+        assert(copied_empty.size() == 0); //NOLINT
+        assert(copied_empty.empty());
+
+        // Verify original is unchanged
+        assert(original.size() == 3);
+    }
+
+    PRINT_PASSED();
+}
 
 // Test growing the ByteArray
 void test_resize_growing() {
