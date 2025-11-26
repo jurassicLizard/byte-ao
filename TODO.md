@@ -1,0 +1,2 @@
+- create a reservation function
+- resize for big endian 
